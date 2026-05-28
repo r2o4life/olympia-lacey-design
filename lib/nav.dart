@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:parallel_paradigm_org/paradigm/pages/deep_dive_page.dart';
+import 'package:parallel_paradigm_org/paradigm/pages/explore_sandbox_page.dart';
 import 'package:parallel_paradigm_org/paradigm/pages/grid_page.dart';
 import 'package:parallel_paradigm_org/paradigm/pages/inquiry_page.dart';
 import 'package:parallel_paradigm_org/paradigm/pages/vanguard_page.dart';
@@ -62,6 +63,27 @@ class AppRouter {
           return NoTransitionPage(child: DeepDivePage(projectId: id));
         },
       ),
+      GoRoute(
+        path: AppRoutes.projectExplorePattern,
+        name: 'project_explore',
+        redirect: (context, state) {
+          final id = state.pathParameters['id'];
+          if (id == null || id.isEmpty) return AppRoutes.grid;
+          if (!ParadigmProjects.projects.containsKey(id)) return AppRoutes.grid;
+          return null;
+        },
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          final qp = state.uri.queryParameters;
+          return NoTransitionPage(
+            child: ExploreSandboxPage(
+              projectId: id,
+              initialObjective: qp['objective'],
+              initialPhase: qp['phase'],
+            ),
+          );
+        },
+      ),
     ],
   );
 }
@@ -119,6 +141,15 @@ class AppRoutes {
   static const String grid = '/grid';
   static const String inquiry = '/inquiry';
   static const String projectPattern = '/project/:id';
+  static const String projectExplorePattern = '/project/:id/explore';
 
   static String project(String id) => '/project/$id';
+  static String projectExplore(String id, {String? objective, String? phase}) {
+    final base = '/project/$id/explore';
+    final params = <String, String>{};
+    if (objective != null && objective.trim().isNotEmpty) params['objective'] = objective;
+    if (phase != null && phase.trim().isNotEmpty) params['phase'] = phase;
+    if (params.isEmpty) return base;
+    return Uri(path: base, queryParameters: params).toString();
+  }
 }

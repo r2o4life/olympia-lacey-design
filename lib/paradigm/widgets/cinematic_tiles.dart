@@ -28,6 +28,8 @@ class CinematicTile extends StatefulWidget {
     this.interactiveKeywords = false,
     this.demoSet = CinematicDemoSet.experienceTech,
     this.demoTemplate,
+    this.initialKeyword,
+    this.onKeywordChanged,
   });
 
   final String kicker;
@@ -46,6 +48,16 @@ class CinematicTile extends StatefulWidget {
   /// based on `keyword -> sub nodes`.
   final Map<String, List<String>>? demoTemplate;
 
+  /// When [interactiveKeywords] is true, this allows the parent to control the
+  /// initial active keyword (objective) selection.
+  final String? initialKeyword;
+
+  /// Emits the active keyword whenever it changes (including clearing).
+  ///
+  /// Useful for routing flows where an "Explore" CTA should carry the current
+  /// objective selection into a full sandbox view.
+  final ValueChanged<String?>? onKeywordChanged;
+
   @override
   State<CinematicTile> createState() => _CinematicTileState();
 }
@@ -62,6 +74,45 @@ class _CinematicTileState extends State<CinematicTile> {
 
   String? _activeKeyword;
   String? _activeBusiness;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.interactiveKeywords) {
+      final desired = widget.initialKeyword;
+      if (desired != null && widget.keywords.contains(desired)) {
+        _activeKeyword = desired;
+        _activeBusiness = _pickBusinessTemplate(desired);
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant CinematicTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.interactiveKeywords) return;
+
+    // If the parent changes the desired initial keyword, respect it.
+    if (widget.initialKeyword != oldWidget.initialKeyword) {
+      final desired = widget.initialKeyword;
+      if (desired == null || desired.trim().isEmpty) {
+        if (_activeKeyword != null) {
+          setState(() {
+            _activeKeyword = null;
+            _activeBusiness = null;
+          });
+        }
+        return;
+      }
+
+      if (widget.keywords.contains(desired) && _activeKeyword != desired) {
+        setState(() {
+          _activeKeyword = desired;
+          _activeBusiness = _pickBusinessTemplate(desired);
+        });
+      }
+    }
+  }
 
   static const Map<CinematicDemoSet, Map<String, List<String>>> _templates = {
     CinematicDemoSet.experienceTech: {
@@ -126,6 +177,7 @@ class _CinematicTileState extends State<CinematicTile> {
         _activeBusiness = _pickBusinessTemplate(keyword);
       }
     });
+    widget.onKeywordChanged?.call(_activeKeyword);
   }
 
   String _pickBusinessTemplate(String keyword) {
@@ -188,7 +240,10 @@ class _CinematicTileState extends State<CinematicTile> {
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOutCubic,
             height: h,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl),
+            // Important: avoid double padding (outer + inner) which shrinks the
+            // usable viewport area and can cause keyword/objective chip clipping.
+            // The inner content padding already provides the desired breathing room.
+            padding: EdgeInsets.zero,
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: hoverT),
               duration: const Duration(milliseconds: 180),
@@ -305,7 +360,7 @@ class _CinematicTileState extends State<CinematicTile> {
 
                         // Content + optional demo viewport.
                         Padding(
-                          padding: const EdgeInsets.all(AppSpacing.xl),
+                          padding: EdgeInsets.all(isWideLayout(context) ? AppSpacing.xl : AppSpacing.lg),
                           child: _CinematicTileContent(
                             kicker: widget.kicker,
                             title: widget.title,
@@ -351,6 +406,8 @@ class _CinematicTileState extends State<CinematicTile> {
     );
   }
 }
+
+bool isWideLayout(BuildContext context) => MediaQuery.sizeOf(context).width >= 980;
 
 class _CinematicTileContent extends StatelessWidget {
   const _CinematicTileContent({

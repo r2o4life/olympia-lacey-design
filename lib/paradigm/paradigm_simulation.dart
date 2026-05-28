@@ -8,7 +8,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:parallel_paradigm_org/theme.dart';
 
-enum ParadigmStage { vanguard, grid, deepDive, inquiry }
+enum ParadigmStage { vanguard, grid, deepDive, inquiry, explore }
 enum ParadigmAccessState { locked, processing, granted }
 
 /// High-performance particle simulation modeled after the original Float32Array heap.
@@ -125,6 +125,15 @@ class ParadigmParticleSimulation {
           targetX = x + math.cos(phase + pointer.dx * 0.01) * 0.8;
           targetY = y + math.sin(phase + pointer.dy * 0.01) * 0.8;
           break;
+        case ParadigmStage.explore:
+          // Fast, subtle orbit around pointer — “sandbox lab” mood.
+          final dx = x - pointer.dx;
+          final dy = y - pointer.dy;
+          final dist = math.sqrt(dx * dx + dy * dy).clamp(1, 600);
+          final pull = (1 - (dist / 600)).clamp(0.0, 1.0);
+          targetX = x + math.cos(phase + pointer.dx * 0.002) * (0.6 + pull * 2.2);
+          targetY = y + math.sin(phase + pointer.dy * 0.002) * (0.6 + pull * 2.2);
+          break;
       }
 
       vx += (targetX - x) * 0.02;
@@ -164,9 +173,12 @@ class ParadigmSpatialEnginePainter extends CustomPainter {
     final stage = simulation.stage;
     canvas.drawRect(Offset.zero & size, Paint()..color = ParadigmColors.bg);
 
-    final fill = Paint()
-      ..style = PaintingStyle.fill
-      ..color = (stage == ParadigmStage.deepDive ? Colors.white.withValues(alpha: 0.10) : Colors.white.withValues(alpha: 0.40));
+    final alpha = switch (stage) {
+      ParadigmStage.deepDive => 0.10,
+      ParadigmStage.explore => 0.18,
+      _ => 0.40,
+    };
+    final fill = Paint()..style = PaintingStyle.fill..color = Colors.white.withValues(alpha: alpha);
 
     final heap = simulation.heap;
     const stride = 6;

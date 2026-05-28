@@ -21,6 +21,7 @@ class DeepDivePage extends StatefulWidget {
 
 class _DeepDivePageState extends State<DeepDivePage> {
   late final ParadigmProject? _project;
+  String? _selectedObjective;
 
   @override
   void initState() {
@@ -64,6 +65,8 @@ class _DeepDivePageState extends State<DeepDivePage> {
                               constraints: const BoxConstraints(maxWidth: 980),
                               child: _DeepDiveContent(
                                 project: project,
+                                 selectedObjective: _selectedObjective,
+                                 onSelectedObjectiveChanged: (next) => setState(() => _selectedObjective = next),
                               ),
                             ),
                           ),
@@ -82,9 +85,11 @@ class _DeepDivePageState extends State<DeepDivePage> {
 }
 
 class _DeepDiveContent extends StatelessWidget {
-  const _DeepDiveContent({required this.project});
+  const _DeepDiveContent({required this.project, required this.selectedObjective, required this.onSelectedObjectiveChanged});
 
   final ParadigmProject project;
+  final String? selectedObjective;
+  final ValueChanged<String?> onSelectedObjectiveChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -125,11 +130,19 @@ class _DeepDiveContent extends StatelessWidget {
           subtitle: project.cinematic.subtitle,
           keywords: project.cinematic.nodes.keys.toList(growable: false),
           accent: ParadigmKeywordPalette.colorFor(project.title),
-          onTap: () {},
+          onTap: () => context.push(AppRoutes.projectExplore(project.id, objective: selectedObjective)),
           actionLabel: 'Explore',
-          height: MediaQuery.sizeOf(context).width >= 980 ? 520 : 560,
+          // Use more of the viewport so longer objective lists never clip.
+          // (The tile also internally guards overflow with a scrollable narrative.)
+          height: () {
+            final s = MediaQuery.sizeOf(context);
+            final target = s.height * (s.width >= 980 ? 0.62 : 0.70);
+            return target.clamp(560.0, 740.0);
+          }(),
           interactiveKeywords: true,
           demoTemplate: project.cinematic.nodes,
+          initialKeyword: selectedObjective,
+          onKeywordChanged: onSelectedObjectiveChanged,
         ),
       ],
     );
