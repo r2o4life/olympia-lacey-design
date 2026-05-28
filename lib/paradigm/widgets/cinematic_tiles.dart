@@ -516,7 +516,11 @@ class _CinematicTileContent extends StatelessWidget {
             label: (actionLabel ?? 'Enter').toUpperCase(),
             accent: accent,
             hover: hover && !demoMode,
-            onTap: demoMode ? () {} : onActionTap,
+            // Even when a keyword demo is open, the primary action should remain
+            // actionable (e.g., "Explore" should still open the full sandbox and
+            // carry the current selection). We only disable the *full-tile* tap
+            // surface when demoMode is active (handled in the parent InkWell).
+            onTap: onActionTap,
           ),
         ),
       ],

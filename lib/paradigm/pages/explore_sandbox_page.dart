@@ -289,7 +289,7 @@ class _ObjectiveRail extends StatelessWidget {
               Text(
                 // Internal (archived) guidance: "Reframe the node through customer stories."
                 // Client-facing: position this as a practical exploration tool.
-                'Choose an objective to explore scenarios, trade-offs, and the outcomes they enable.',
+                'Choose an objective and step into a customer moment — then watch how each lifecycle decision changes what they feel, trust, and do next.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: ParadigmColors.textMuted, height: 1.5),
               ),
               const SizedBox(height: 16),
@@ -320,7 +320,7 @@ class _ObjectiveRail extends StatelessWidget {
                           // Internal (archived) guidance for authors:
                           // “The SDLC thread becomes the story spine: each phase is a beat, each constraint is a scene.”
                           // Client-facing: translate SDLC into a readable walkthrough.
-                          'Follow the lifecycle beats to see how decisions compound into measurable outcomes.',
+                          'Move through the lifecycle to see how small choices compound into outcomes — faster onboarding, cleaner revenue, stronger trust.',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: ParadigmColors.textMuted, height: 1.5),
                         ),
                       ),
@@ -510,7 +510,7 @@ class _ViewportTopBar extends StatelessWidget {
             Text(
               // Internal (archived) label: "Customer-story reframe".
               // Client-facing: communicate value without process-language.
-              'Scenario walkthrough'.toUpperCase(),
+              'Customer journey'.toUpperCase(),
               style: ParadigmTypography.mono(context).copyWith(fontSize: 11, letterSpacing: 2.6, color: ParadigmColors.textMuted, fontWeight: FontWeight.w800),
             ),
           ],
@@ -700,11 +700,8 @@ class _StoryBeatPanel extends StatelessWidget {
                               beat.thread,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.86), height: 1.5),
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'This is a hypothetical customer story used to make the constraint legible — not a claim about production data.'.toUpperCase(),
-                              style: ParadigmTypography.mono(context).copyWith(fontSize: 10, letterSpacing: 2.2, color: ParadigmColors.textFaint),
-                            ),
+                            // Intentionally no author-notes / meta-disclaimers here.
+                            // The sandbox should read like a client-facing narrative.
                           ],
                         ),
                       ),
@@ -821,11 +818,11 @@ class _StoryBeat {
     // Keep it deterministic + fast: no backend/LLM calls — purely templated.
     String setup;
     if (projectId == 'tipzero') {
-      setup = 'In TipZero, $persona wants the reward to feel instant — but every step has payout, attribution, and policy gravity.';
+      setup = 'In TipZero, $persona wants the reward to feel instant. A delay, a confusing screen, or a “why is this asking me?” moment is enough to abandon the flow.';
     } else if (projectId == 'bridge') {
-      setup = 'In BridgeBound, $persona needs clarity fast — but privacy, governance, and latency budgets decide what can ship.';
+      setup = 'In BridgeBound, $persona needs clarity fast. If the experience feels slow, unclear, or unsafe, they won’t come back — and they won’t recommend it.';
     } else {
-      setup = 'A hypothetical customer story makes the engineering constraint legible.';
+      setup = 'A customer arrives with a simple goal, and the system has one job: make the next step feel inevitable.';
     }
 
     String focus;
@@ -844,18 +841,18 @@ class _StoryBeat {
     }
 
     final phaseLine = switch (phase.toLowerCase()) {
-      'discovery' => 'Scene: we observe the human ritual behind "$detail" — what they do, what they refuse, and why.',
-      'signal' => 'Scene: we craft a measurable wedge around "$detail" so the adoption story can survive skepticism.',
-      'prototype' => 'Scene: we stage "$detail" as a low-risk rehearsal — fast feedback, zero embarrassment, clear value.',
-      'build' => 'Scene: we implement "$detail" with guardrails so the happy path is effortless and the edge cases are contained.',
-      'launch' => 'Scene: we ship "$detail" with instrumentation that can tell the difference between curiosity and conversion.',
-      'iterate' => 'Scene: we refine "$detail" by tightening the loop: less friction, better timing, stronger outcomes.',
-      _ => 'Scene: we translate "$detail" into an observable, shippable beat.',
+      'discovery' => 'We start by watching what the customer actually does around “$detail” — where they hesitate, what they assume, and what they refuse to tolerate.',
+      'signal' => 'We choose one measurable promise inside “$detail” and make it easy to prove — so the customer feels the value before they’re asked to commit.',
+      'prototype' => 'We rehearse “$detail” with a lightweight prototype, so feedback arrives early and the experience stays confident instead of complicated.',
+      'build' => 'We build “$detail” with guardrails: the happy path stays effortless, and edge cases fail safely without breaking trust.',
+      'launch' => 'We launch “$detail” with clarity: the customer knows what changed, and we can measure what they do next — not just what they click.',
+      'iterate' => 'We iterate “$detail” by removing friction and sharpening timing until the outcome becomes repeatable, not lucky.',
+      _ => 'We translate “$detail” into a shippable step that the customer can feel immediately.',
     };
 
     final cadence = (index % 2 == 0)
-        ? 'The story beat ends with a single question: what must be true for the next phase to work?'
-        : 'The story beat ends with a single constraint: what must never happen for the system to remain credible?';
+        ? 'By the end of this moment, the customer should feel one thing: “this is working.” The next phase only matters if that feeling survives.'
+        : 'By the end of this moment, trust is either earned or lost. The system’s job is to protect the customer from the kind of failure they remember.';
 
     return '$setup\n\n$focus\n\n$phaseLine\n\n$cadence';
   }
