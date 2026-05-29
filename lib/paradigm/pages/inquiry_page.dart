@@ -10,7 +10,9 @@ import 'package:parallel_paradigm_org/paradigm/paradigm_shell.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_simulation.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/pixel_motif.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/paradigm_top_nav.dart';
+import 'package:parallel_paradigm_org/supabase/supabase_config.dart';
 import 'package:parallel_paradigm_org/theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class InquiryPage extends StatefulWidget {
   const InquiryPage({super.key});
@@ -61,12 +63,15 @@ class _InquiryPageState extends State<InquiryPage> {
     });
 
     try {
+      if (!SupabaseConfig.isConfigured) {
+        throw Exception('Supabase not configured');
+      }
       final lead = InquiryLead(
         email: email,
         focusAreas: _focus.toList()..sort(),
         notes: _notes.text.trim(),
       );
-      await InquiryService.submit(lead);
+      final result = await InquiryService.submit(lead);
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       messenger.clearSnackBars();
@@ -92,45 +97,51 @@ class _InquiryPageState extends State<InquiryPage> {
       debugPrint('Failed to submit inquiry: $e');
       if (!mounted) return;
 
-      final message = e.toString();
-      final isNoBackend = message.contains('No backend connected') || message.contains('Supabase panel');
-      final isMissingTable = message.contains("Could not find the table") ||
-          message.contains("schema cache") ||
-          message.contains("public.inquiry_leads");
+      final raw = e.toString();
+      final isCooldown = raw.contains('Please wait a moment');
+      final isNotConfigured = raw.contains('Supabase not configured') || raw.contains('No backend connected');
 
-      if (isNoBackend) {
-        await showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
+      // Customer-facing behavior: never show setup/pre-configuration callouts
+      // in the inquiry flow. We still log the underlying exception above.
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.transparent,
-          builder: (_) => const _SupabaseNotConnectedSheet(),
-        );
-      } else if (isMissingTable) {
-        await showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const _SupabaseMissingTableSheet(),
-        );
-      } else {
-        final messenger = ScaffoldMessenger.of(context);
-        messenger.clearSnackBars();
-        messenger.showSnackBar(
-          const SnackBar(
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            duration: Duration(seconds: 4),
-            margin: EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.xl),
-            content: _InquiryToast(
-              tone: _InquiryToastTone.error,
-              title: 'Couldn’t submit',
-              message: 'Please try again in a moment.',
-            ),
+          elevation: 0,
+          duration: const Duration(seconds: 4),
+          margin: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.xl),
+          content: _InquiryToast(
+            tone: _InquiryToastTone.error,
+            title: 'Couldn’t submit',
+            message: isCooldown
+                ? 'Please wait a moment, then try again.'
+                : isNotConfigured
+                    ? 'Submissions are temporarily unavailable. Please email letsdesign@parallelparadigm.org.'
+                    : 'Please try again in a moment.',
           ),
-        );
-      }
+        ),
+      );
       setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _launchMailto() async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'letsdesign@parallelparadigm.org',
+      queryParameters: {
+        'subject': 'Direct Inquiry',
+      },
+    );
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.platformDefault);
+      if (!ok) {
+        debugPrint('[InquiryPage] launchUrl returned false for $uri');
+      }
+    } catch (e) {
+      debugPrint('[InquiryPage] Failed to launch mailto: $e');
     }
   }
 
@@ -215,6 +226,7 @@ class _InquiryPageState extends State<InquiryPage> {
                                 }
                               }),
                               onSubmit: _submit,
+                              onEmailInstead: _launchMailto,
                             ),
                           ],
                         ),
@@ -308,6 +320,7 @@ class _InquiryPanel extends StatelessWidget {
     required this.focus,
     required this.onFocusChanged,
     required this.onSubmit,
+    required this.onEmailInstead,
     required this.submitting,
     required this.emailError,
   });
@@ -317,6 +330,7 @@ class _InquiryPanel extends StatelessWidget {
   final Set<String> focus;
   final ValueChanged<String> onFocusChanged;
   final VoidCallback onSubmit;
+  final VoidCallback onEmailInstead;
   final bool submitting;
   final String? emailError;
 
@@ -391,6 +405,8 @@ class _InquiryPanel extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                _EmailInsteadRow(onTap: onEmailInstead),
                 const SizedBox(height: 10),
                 Text(
                   'SUBMISSIONS ARE STORED SECURELY. WE ONLY USE YOUR EMAIL FOR FOLLOW-UP.',
@@ -594,169 +610,49 @@ class _SubmitButtonState extends State<_SubmitButton> {
   }
 }
 
-class _SupabaseMissingTableSheet extends StatelessWidget {
-  const _SupabaseMissingTableSheet();
-
-  static const String _sql = '''
--- Creates the table used by the app’s inquiry form.
--- Run this in Supabase SQL Editor.
-
-create extension if not exists pgcrypto;
-
-create table if not exists public.inquiry_leads (
-  id uuid primary key default gen_random_uuid(),
-  email text not null,
-  focus_areas text[] not null default '{}'::text[],
-  notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-alter table public.inquiry_leads enable row level security;
-
-do \$\$ begin
-  create policy "Allow anon insert inquiry leads" on public.inquiry_leads
-  for insert to anon
-  with check (true);
-exception when duplicate_object then null;
-end \$\$;
-
-create or replace function public.set_updated_at()
-returns trigger language plpgsql as \$\$
-begin
-  new.updated_at = now();
-  return new;
-end \$\$;
-
-drop trigger if exists set_updated_at on public.inquiry_leads;
-create trigger set_updated_at
-before update on public.inquiry_leads
-for each row execute function public.set_updated_at();
-''';
+class _EmailInsteadRow extends StatefulWidget {
+  const _EmailInsteadRow({required this.onTap});
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xl),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: Container(
-            decoration: BoxDecoration(
-              color: ParadigmColors.panel,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Backend setup required'.toUpperCase(),
-                    style: ParadigmTypography.mono(context).copyWith(
-                      fontSize: 11,
-                      letterSpacing: 2.4,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Supabase is connected, but the app’s lead-capture table (`public.inquiry_leads`) is missing. Create it once and allow anonymous inserts; then “Submit Inquiry” will work immediately.',
-                    style: text.bodyMedium?.copyWith(height: 1.5, color: ParadigmColors.textPrimary.withValues(alpha: 0.90)),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'SQL to run (once)'.toUpperCase(),
-                    style: ParadigmTypography.mono(context).copyWith(fontSize: 10, letterSpacing: 2.4, color: ParadigmColors.textFaint),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(maxHeight: 320),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-                    ),
-                    child: SingleChildScrollView(
-                      child: SelectableText(
-                        _sql.trim(),
-                        style: ParadigmTypography.mono(context).copyWith(fontSize: 11, height: 1.45, letterSpacing: 1.2, color: Colors.white.withValues(alpha: 0.92)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _SheetButton(label: 'Close', onTap: () => context.pop(), isPrimary: true),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  State<_EmailInsteadRow> createState() => _EmailInsteadRowState();
 }
 
-class _SupabaseNotConnectedSheet extends StatelessWidget {
-  const _SupabaseNotConnectedSheet();
+class _EmailInsteadRowState extends State<_EmailInsteadRow> {
+  bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xl),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: Container(
-            decoration: BoxDecoration(
-              color: ParadigmColors.panel,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'No backend connected'.toUpperCase(),
-                    style: ParadigmTypography.mono(context).copyWith(
-                      fontSize: 11,
-                      letterSpacing: 2.4,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'To enable form submissions, connect Supabase inside Dreamflow (left sidebar → Supabase panel) and complete the setup steps. Once connected, this page will submit leads directly to your Supabase database.',
-                    style: text.bodyMedium?.copyWith(height: 1.5, color: ParadigmColors.textPrimary.withValues(alpha: 0.90)),
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _SheetButton(label: 'Close', onTap: () => context.pop(), isPrimary: true),
-                    ],
-                  ),
-                ],
+    final base = ParadigmTypography.mono(context).copyWith(fontSize: 10.5, letterSpacing: 2.0, fontWeight: FontWeight.w700);
+    final linkColor = _hover ? ParadigmColors.accentCyan : Colors.white.withValues(alpha: 0.86);
+
+    return Row(
+      children: [
+        Icon(Icons.alternate_email, size: 16, color: Colors.white.withValues(alpha: 0.72)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _hover = true),
+            onExit: (_) => setState(() => _hover = false),
+            child: InkWell(
+              onTap: widget.onTap,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('PREFER EMAIL? ', style: base.copyWith(color: ParadigmColors.textFaint)),
+                    Text('LETSDESIGN@PARALLELPARADIGM.ORG', style: base.copyWith(color: linkColor)),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -812,53 +708,6 @@ class _InquiryToast extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SheetButton extends StatefulWidget {
-  const _SheetButton({required this.label, required this.onTap, required this.isPrimary});
-  final String label;
-  final VoidCallback onTap;
-  final bool isPrimary;
-
-  @override
-  State<_SheetButton> createState() => _SheetButtonState();
-}
-
-class _SheetButtonState extends State<_SheetButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = _hover ? Colors.white : Colors.white.withValues(alpha: 0.92);
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: InkWell(
-        onTap: widget.onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: Text(
-            widget.label.toUpperCase(),
-            style: ParadigmTypography.mono(context).copyWith(
-              fontSize: 11,
-              letterSpacing: 2.4,
-              color: Colors.black,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
         ),
       ),
     );
