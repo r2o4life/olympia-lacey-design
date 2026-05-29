@@ -28,6 +28,22 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
   late final PageController _controller;
   int _pageIndex = 0;
 
+  Future<void> _showObjectiveSheet({required ParadigmProject project, required Color accent}) async {
+    final next = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _ObjectiveBottomSheet(project: project, selected: _objective, accent: accent),
+    );
+    if (!mounted) return;
+    if (next == null || next == _objective) return;
+    setState(() {
+      _objective = next;
+      _pageIndex = 0;
+    });
+    _controller.jumpToPage(0);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -104,22 +120,39 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final wide = constraints.maxWidth >= 980;
+                      final phone = constraints.maxWidth < 740;
+
+                      if (phone) {
+                        return _StoryViewport(
+                          accent: accent,
+                          objective: _objective,
+                          beats: beats,
+                          controller: _controller,
+                          pageIndex: _pageIndex,
+                          onChanged: (i) => setState(() => _pageIndex = i),
+                          onOpenObjectives: () => _showObjectiveSheet(project: project, accent: accent),
+                        );
+                      }
+
                       final leftWidth = wide ? 320.0 : constraints.maxWidth;
                       final rightWidth = wide ? (constraints.maxWidth - leftWidth - 16) : constraints.maxWidth;
 
-                      final left = SizedBox(width: leftWidth, child: _ObjectiveRail(
-                        project: project,
-                        objective: _objective,
-                        accent: accent,
-                        onSelect: (next) {
-                          if (next == _objective) return;
-                          setState(() {
-                            _objective = next;
-                            _pageIndex = 0;
-                          });
-                          _controller.jumpToPage(0);
-                        },
-                      ));
+                      final left = SizedBox(
+                        width: leftWidth,
+                        child: _ObjectiveRail(
+                          project: project,
+                          objective: _objective,
+                          accent: accent,
+                          onSelect: (next) {
+                            if (next == _objective) return;
+                            setState(() {
+                              _objective = next;
+                              _pageIndex = 0;
+                            });
+                            _controller.jumpToPage(0);
+                          },
+                        ),
+                      );
 
                       final right = SizedBox(
                         width: rightWidth,
@@ -133,9 +166,7 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
                         ),
                       );
 
-                      if (wide) {
-                        return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [left, const SizedBox(width: 16), Expanded(child: right)]);
-                      }
+                      if (wide) return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [left, const SizedBox(width: 16), Expanded(child: right)]);
                       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [left, const SizedBox(height: 16), Expanded(child: right)]);
                     },
                   ),
@@ -380,8 +411,126 @@ class _ObjectiveChipState extends State<_ObjectiveChip> {
   }
 }
 
+class _ObjectiveBottomSheet extends StatelessWidget {
+  const _ObjectiveBottomSheet({required this.project, required this.selected, required this.accent});
+
+  final ParadigmProject project;
+  final String selected;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final bottomPad = media.viewInsets.bottom;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.lg + bottomPad),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.62,
+        minChildSize: 0.38,
+        maxChildSize: 0.92,
+        builder: (context, controller) {
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: ParadigmColors.panel,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Objectives'.toUpperCase(),
+                          style: ParadigmTypography.mono(context).copyWith(fontSize: 11, letterSpacing: 2.6, color: ParadigmColors.textFaint),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(Icons.close, color: Colors.white.withValues(alpha: 0.86), size: 18),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    controller: controller,
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+                    children: [
+                      Text(
+                        'Pick an objective to reframe the sandbox narrative. The story viewport will reset to beat 01.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: ParadigmColors.textMuted, height: 1.5),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: project.cinematic.nodes.keys
+                            .map(
+                              (key) => _ObjectiveChip(
+                                label: key,
+                                selected: key == selected,
+                                accent: accent,
+                                onTap: () => Navigator.of(context).pop(key),
+                              ),
+                            )
+                            .toList(growable: false),
+                      ),
+                      const SizedBox(height: 14),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.auto_awesome_rounded, size: 18, color: accent.withValues(alpha: 0.86)),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Tip: once you’re inside a beat, use Next/Prev to move through phases. Each phase is a lifecycle decision that changes what the customer feels next.',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: ParadigmColors.textMuted, height: 1.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _StoryViewport extends StatefulWidget {
-  const _StoryViewport({required this.accent, required this.objective, required this.beats, required this.controller, required this.pageIndex, required this.onChanged});
+  const _StoryViewport({
+    required this.accent,
+    required this.objective,
+    required this.beats,
+    required this.controller,
+    required this.pageIndex,
+    required this.onChanged,
+    this.onOpenObjectives,
+  });
 
   final Color accent;
   final String objective;
@@ -389,6 +538,7 @@ class _StoryViewport extends StatefulWidget {
   final PageController controller;
   final int pageIndex;
   final ValueChanged<int> onChanged;
+  final VoidCallback? onOpenObjectives;
 
   @override
   State<_StoryViewport> createState() => _StoryViewportState();
@@ -447,7 +597,14 @@ class _StoryViewportState extends State<_StoryViewport> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _ViewportTopBar(accent: accent, objective: widget.objective, beats: beats, pageIndex: widget.pageIndex, controller: widget.controller),
+                    _ViewportTopBar(
+                      accent: accent,
+                      objective: widget.objective,
+                      beats: beats,
+                      pageIndex: widget.pageIndex,
+                      controller: widget.controller,
+                      onOpenObjectives: widget.onOpenObjectives,
+                    ),
                     const SizedBox(height: 14),
                     Expanded(
                       child: ClipRRect(
@@ -481,16 +638,25 @@ class _StoryViewportState extends State<_StoryViewport> {
 }
 
 class _ViewportTopBar extends StatelessWidget {
-  const _ViewportTopBar({required this.accent, required this.objective, required this.beats, required this.pageIndex, required this.controller});
+  const _ViewportTopBar({
+    required this.accent,
+    required this.objective,
+    required this.beats,
+    required this.pageIndex,
+    required this.controller,
+    this.onOpenObjectives,
+  });
 
   final Color accent;
   final String objective;
   final List<_StoryBeat> beats;
   final int pageIndex;
   final PageController controller;
+  final VoidCallback? onOpenObjectives;
 
   @override
   Widget build(BuildContext context) {
+    final canOpenObjectives = onOpenObjectives != null;
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -507,6 +673,14 @@ class _ViewportTopBar extends StatelessWidget {
               objective,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: -0.6),
             ),
+            if (canOpenObjectives)
+              _MiniNavButton(
+                label: 'Objectives',
+                icon: Icons.tune_rounded,
+                enabled: true,
+                accent: accent,
+                onTap: onOpenObjectives!,
+              ),
             Text(
               // Internal (archived) label: "Customer-story reframe".
               // Client-facing: communicate value without process-language.
@@ -762,6 +936,11 @@ class _StoryBeat {
   final String thread;
 
   static _StoryBeat from({required String projectId, required String objective, required _SdlcStep step, required int index}) {
+    final override = ParadigmNarrativeLibrary.beatFor(projectId: projectId, objective: objective, phase: step.phase);
+    if (override != null) {
+      return _StoryBeat(phase: step.phase, headline: override.headline, body: override.body, thread: step.raw);
+    }
+
     final persona = _personaFor(projectId, objective);
     final verb = _verbFor(step.phase);
     final headline = '${step.phase}: $verb';
