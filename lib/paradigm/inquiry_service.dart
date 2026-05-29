@@ -7,16 +7,29 @@ import 'package:parallel_paradigm_org/supabase/supabase_config.dart';
 /// Uses Supabase when available; falls back to debug logging if initialization
 /// fails (so the UX still works in preview/dev).
 class InquiryLead {
-  const InquiryLead({required this.email, required this.focusAreas, required this.notes});
+  const InquiryLead({
+    required this.email,
+    required this.focusAreas,
+    required this.surface,
+    required this.modules,
+    required this.notes,
+  });
 
   final String email;
   final List<String> focusAreas;
+  /// Mutually exclusive “primary build surface”.
+  final String surface;
+  /// Multi-select modules/presets.
+  final List<String> modules;
   final String notes;
 
   Map<String, dynamic> toJson() => {
     'email': email,
     // Matches the deployed Supabase schema.
     'focus_areas': focusAreas,
+    // These fields may not exist in older deployments; see submit() fallback.
+    'surface': surface,
+    'modules': modules,
     'notes': notes,
   };
 }
@@ -35,7 +48,11 @@ class InquiryService {
     }
 
     try {
-      debugPrint('[InquiryService] submit() start email=${normalizeEmail(lead.email)} focus=${lead.focusAreas.join(",")} notesLen=${lead.notes.length}');
+      debugPrint(
+        '[InquiryService] submit() start email=${normalizeEmail(lead.email)} '
+        'surface=${lead.surface} modules=${lead.modules.join(",")} '
+        'focus=${lead.focusAreas.join(",")} notesLen=${lead.notes.length}',
+      );
       _lastSubmission = now;
 
       // Hard requirement: only submit when Supabase is truly available.
@@ -48,11 +65,46 @@ class InquiryService {
         throw Exception('Supabase not initialized.');
       }
 
-      await SupabaseService.insert('inquiry_leads', {
-        'email': normalizeEmail(lead.email),
+      final normalizedEmail = normalizeEmail(lead.email);
+
+      // Backward compatible payload strategy:
+      // 1) Try inserting structured fields (surface/modules) if the table supports them.
+      // 2) If the DB schema is older (missing columns), fall back to inserting only
+      //    the original columns and embed the structured info into notes.
+      final structuredData = <String, dynamic>{
+        'email': normalizedEmail,
         'focus_areas': lead.focusAreas,
+        'surface': lead.surface,
+        'modules': lead.modules,
         'notes': lead.notes,
-      });
+      };
+
+      try {
+        await SupabaseService.insert('inquiry_leads', structuredData);
+      } catch (e) {
+        final raw = e.toString().toLowerCase();
+        // PostgREST can report missing columns in multiple ways:
+        // - Postgres: "column ... does not exist"
+        // - PostgREST schema cache: "Could not find the 'modules' column ... in the schema cache" (PGRST204)
+        final looksLikeMissingColumn =
+            (raw.contains('does not exist') && raw.contains('column')) ||
+            (raw.contains('could not find') && raw.contains('column') && raw.contains('schema cache')) ||
+            raw.contains('pgrst204');
+        if (!looksLikeMissingColumn) rethrow;
+
+        debugPrint('[InquiryService] inquiry_leads schema missing columns; retrying with legacy payload. err=$e');
+        final enrichedNotes = [
+          if (lead.surface.trim().isNotEmpty) 'surface=${lead.surface}',
+          if (lead.modules.isNotEmpty) 'modules=${lead.modules.join(",")}',
+          if (lead.notes.trim().isNotEmpty) lead.notes.trim(),
+        ].join(' | ');
+
+        await SupabaseService.insert('inquiry_leads', {
+          'email': normalizedEmail,
+          'focus_areas': lead.focusAreas,
+          'notes': enrichedNotes,
+        });
+      }
       debugPrint('[InquiryService] submit() success');
       return InquirySubmitResult.insertedRemote;
     } catch (e) {
@@ -82,6 +134,8 @@ class InquiryService {
       InquiryLead(
         email: normalized,
         focusAreas: const ['CaseStudy'],
+        surface: 'Case Study',
+        modules: const ['Explore Sandbox'],
         notes: notes,
       ),
     );

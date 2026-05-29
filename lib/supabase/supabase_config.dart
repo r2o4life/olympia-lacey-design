@@ -6,8 +6,8 @@ import 'package:parallel_paradigm_org/supabase/supabase_project_defaults.dart';
 
 class SupabaseConfig {
   /// Prefer compile-time env vars for deployments:
-  /// - SUPABASE_URL
-  /// - SUPABASE_ANON_KEY
+  /// - 
+  /// - 
   ///
   /// In Dreamflow, connect Supabase via the Supabase panel (no CLI required).
   /// If env vars are missing, we run the app without a backend.
@@ -32,22 +32,22 @@ class SupabaseConfig {
     final cached = _cachedUrl;
     if (cached != null && cached.trim().isNotEmpty) return cached;
 
-    const primary = String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+    const primary = String.fromEnvironment('', defaultValue: '');
     const alias1 = String.fromEnvironment('SUPABASE_PROJECT_URL', defaultValue: '');
     const alias2 = String.fromEnvironment('SUPABASE_API_URL', defaultValue: '');
     const alias3 = String.fromEnvironment('SUPABASE_ENDPOINT', defaultValue: '');
     const alias4 = String.fromEnvironment('SUPABASE_PROJECT_ENDPOINT', defaultValue: '');
-    const dreamflow1 = String.fromEnvironment('DREAMFLOW_SUPABASE_URL', defaultValue: '');
+    const dreamflow1 = String.fromEnvironment('DREAMFLOW_', defaultValue: '');
     const dreamflow2 = String.fromEnvironment('DREAMFLOW_SUPABASE_PROJECT_URL', defaultValue: '');
     const dreamflow3 = String.fromEnvironment('DREAMFLOW_SUPABASE_PROJECT_ENDPOINT', defaultValue: '');
 
     final runtime = SupabaseRuntimeEnv.getAny(const [
-      'SUPABASE_URL',
+      '',
       'SUPABASE_PROJECT_URL',
       'SUPABASE_API_URL',
       'SUPABASE_ENDPOINT',
       'SUPABASE_PROJECT_ENDPOINT',
-      'DREAMFLOW_SUPABASE_URL',
+      'DREAMFLOW_',
       'DREAMFLOW_SUPABASE_PROJECT_URL',
       'DREAMFLOW_SUPABASE_PROJECT_ENDPOINT',
     ]);
@@ -76,24 +76,24 @@ class SupabaseConfig {
     final cached = _cachedAnonKey;
     if (cached != null && cached.trim().isNotEmpty) return cached;
 
-    const primary = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+    const primary = String.fromEnvironment('', defaultValue: '');
     const alias1 = String.fromEnvironment('SUPABASE_PUBLIC_ANON_KEY', defaultValue: '');
     const alias2 = String.fromEnvironment('SUPABASE_ANON_PUBLIC_KEY', defaultValue: '');
     const alias3 = String.fromEnvironment('SUPABASE_KEY', defaultValue: '');
     const alias4 = String.fromEnvironment('SUPABASE_ANON', defaultValue: '');
     const alias5 = String.fromEnvironment('SUPABASE_ANON_TOKEN', defaultValue: '');
-    const dreamflow1 = String.fromEnvironment('DREAMFLOW_SUPABASE_ANON_KEY', defaultValue: '');
+    const dreamflow1 = String.fromEnvironment('DREAMFLOW_', defaultValue: '');
     const dreamflow2 = String.fromEnvironment('DREAMFLOW_SUPABASE_PUBLIC_ANON_KEY', defaultValue: '');
     const dreamflow3 = String.fromEnvironment('DREAMFLOW_SUPABASE_ANON_PUBLIC_KEY', defaultValue: '');
 
     final runtime = SupabaseRuntimeEnv.getAny(const [
-      'SUPABASE_ANON_KEY',
+      '',
       'SUPABASE_PUBLIC_ANON_KEY',
       'SUPABASE_ANON_PUBLIC_KEY',
       'SUPABASE_KEY',
       'SUPABASE_ANON',
       'SUPABASE_ANON_TOKEN',
-      'DREAMFLOW_SUPABASE_ANON_KEY',
+      'DREAMFLOW_',
       'DREAMFLOW_SUPABASE_PUBLIC_ANON_KEY',
       'DREAMFLOW_SUPABASE_ANON_PUBLIC_KEY',
     ]);
@@ -132,7 +132,7 @@ class SupabaseConfig {
         final urlPresent = supabaseUrl.trim().isNotEmpty;
         final keyPresent = anonKey.trim().isNotEmpty;
         debugPrint(
-          '[SupabaseConfig] Not configured. (Missing SUPABASE_URL=${urlPresent ? "present" : "missing"} / SUPABASE_ANON_KEY=${keyPresent ? "present" : "missing"}. Expected via dart-defines or web runtime env).',
+          '[SupabaseConfig] Not configured. (Missing =${urlPresent ? "present" : "missing"} / =${keyPresent ? "present" : "missing"}. Expected via dart-defines or web runtime env).',
         );
         SupabaseRuntimeEnv.debugDump();
       }

@@ -25,6 +25,8 @@ class _InquiryPageState extends State<InquiryPage> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _notes = TextEditingController();
   final Set<String> _focus = {'Growth'};
+  String _surface = 'Website';
+  final Set<String> _modules = {};
   bool _submitting = false;
   String? _emailError;
 
@@ -69,6 +71,8 @@ class _InquiryPageState extends State<InquiryPage> {
       final lead = InquiryLead(
         email: email,
         focusAreas: _focus.toList()..sort(),
+        surface: _surface,
+        modules: _modules.toList()..sort(),
         notes: _notes.text.trim(),
       );
       final result = await InquiryService.submit(lead);
@@ -216,6 +220,8 @@ class _InquiryPageState extends State<InquiryPage> {
                               email: _email,
                               notes: _notes,
                               focus: _focus,
+                              surface: _surface,
+                              modules: _modules,
                               emailError: _emailError,
                               submitting: _submitting,
                               onFocusChanged: (v) => setState(() {
@@ -223,6 +229,14 @@ class _InquiryPageState extends State<InquiryPage> {
                                   if (_focus.length > 1) _focus.remove(v);
                                 } else {
                                   _focus.add(v);
+                                }
+                              }),
+                              onSurfaceChanged: (v) => setState(() => _surface = v),
+                              onModuleToggled: (v) => setState(() {
+                                if (_modules.contains(v)) {
+                                  _modules.remove(v);
+                                } else {
+                                  _modules.add(v);
                                 }
                               }),
                               onSubmit: _submit,
@@ -318,7 +332,11 @@ class _InquiryPanel extends StatelessWidget {
     required this.email,
     required this.notes,
     required this.focus,
+    required this.surface,
+    required this.modules,
     required this.onFocusChanged,
+    required this.onSurfaceChanged,
+    required this.onModuleToggled,
     required this.onSubmit,
     required this.onEmailInstead,
     required this.submitting,
@@ -328,7 +346,11 @@ class _InquiryPanel extends StatelessWidget {
   final TextEditingController email;
   final TextEditingController notes;
   final Set<String> focus;
+  final String surface;
+  final Set<String> modules;
   final ValueChanged<String> onFocusChanged;
+  final ValueChanged<String> onSurfaceChanged;
+  final ValueChanged<String> onModuleToggled;
   final VoidCallback onSubmit;
   final VoidCallback onEmailInstead;
   final bool submitting;
@@ -373,6 +395,57 @@ class _InquiryPanel extends StatelessWidget {
                           keyword: k,
                           selected: focus.contains(k),
                           onTap: () => onFocusChanged(k),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+                const SizedBox(height: 22),
+                Text(
+                  'What are we building?'.toUpperCase(),
+                  style: ParadigmTypography.mono(context).copyWith(fontSize: 10, letterSpacing: 2.6, color: ParadigmColors.textFaint),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: const ['Website', 'Mobile App', 'Internal Tool', 'Integrations', 'Audit/Hardening', 'Prototype']
+                      .map(
+                        (k) => _PresetChip(
+                          label: k,
+                          icon: _InquiryPresetIcons.surfaceIconFor(k),
+                          accent: _InquiryPresetPalette.surfaceColorFor(k),
+                          selected: surface == k,
+                          onTap: () => onSurfaceChanged(k),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'Which modules matter? (Optional)'.toUpperCase(),
+                  style: ParadigmTypography.mono(context).copyWith(fontSize: 10, letterSpacing: 2.6, color: ParadigmColors.textFaint),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: const [
+                    'Scheduling',
+                    'Loyalty',
+                    'Payments',
+                    'Analytics',
+                    'Automation',
+                    'Admin Portal',
+                    'CMS / Content',
+                    'Gamification',
+                  ]
+                      .map(
+                        (k) => _PresetChip(
+                          label: k,
+                          icon: _InquiryPresetIcons.moduleIconFor(k),
+                          accent: _InquiryPresetPalette.moduleColorFor(k),
+                          selected: modules.contains(k),
+                          onTap: () => onModuleToggled(k),
                         ),
                       )
                       .toList(growable: false),
@@ -505,6 +578,139 @@ class _FocusChip extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _PresetChip extends StatelessWidget {
+  const _PresetChip({required this.label, required this.icon, required this.accent, required this.selected, required this.onTap});
+  final String label;
+  final IconData icon;
+  final Color accent;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: Colors.white.withValues(alpha: selected ? 0.22 : 0.12)),
+          color: selected ? accent.withValues(alpha: 0.14) : Colors.white.withValues(alpha: 0.04),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: selected ? Colors.white : accent.withValues(alpha: 0.85)),
+            const SizedBox(width: 10),
+            Text(
+              label.toUpperCase(),
+              style: ParadigmTypography.mono(context).copyWith(
+                fontSize: 10,
+                letterSpacing: 2.0,
+                color: selected ? Colors.white : ParadigmColors.textMuted,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InquiryPresetPalette {
+  static Color surfaceColorFor(String label) {
+    switch (label) {
+      case 'Website':
+        return ParadigmColors.accentCyan;
+      case 'Mobile App':
+        return ParadigmColors.accentViolet;
+      case 'Internal Tool':
+        return ParadigmColors.accentAmber;
+      case 'Integrations':
+        return ParadigmColors.accentLime;
+      case 'Audit/Hardening':
+        return ParadigmColors.accentRose;
+      case 'Prototype':
+        return ParadigmColors.accentAmber;
+      default:
+        return ParadigmColors.accentCyan;
+    }
+  }
+
+  static Color moduleColorFor(String label) {
+    switch (label) {
+      case 'Scheduling':
+        return ParadigmColors.accentCyan;
+      case 'Loyalty':
+        return ParadigmColors.accentRose;
+      case 'Payments':
+        return ParadigmColors.accentAmber;
+      case 'Analytics':
+        return ParadigmColors.accentViolet;
+      case 'Automation':
+        return ParadigmColors.accentLime;
+      case 'Admin Portal':
+        return ParadigmColors.accentViolet;
+      case 'CMS / Content':
+        return ParadigmColors.accentCyan;
+      case 'Gamification':
+        return ParadigmColors.accentRose;
+      default:
+        return ParadigmColors.accentCyan;
+    }
+  }
+}
+
+class _InquiryPresetIcons {
+  static IconData surfaceIconFor(String label) {
+    switch (label) {
+      case 'Website':
+        return Icons.language;
+      case 'Mobile App':
+        return Icons.phone_iphone;
+      case 'Internal Tool':
+        return Icons.space_dashboard;
+      case 'Integrations':
+        return Icons.hub;
+      case 'Audit/Hardening':
+        return Icons.verified_user;
+      case 'Prototype':
+        return Icons.science;
+      default:
+        return Icons.auto_awesome;
+    }
+  }
+
+  static IconData moduleIconFor(String label) {
+    switch (label) {
+      case 'Scheduling':
+        return Icons.event_available;
+      case 'Loyalty':
+        return Icons.card_giftcard;
+      case 'Payments':
+        return Icons.payments;
+      case 'Analytics':
+        return Icons.query_stats;
+      case 'Automation':
+        return Icons.auto_fix_high;
+      case 'Admin Portal':
+        return Icons.admin_panel_settings;
+      case 'CMS / Content':
+        return Icons.article;
+      case 'Gamification':
+        return Icons.emoji_events;
+      default:
+        return Icons.tune;
+    }
   }
 }
 

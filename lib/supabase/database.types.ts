@@ -20,7 +20,9 @@ export type Database = {
           email: string
           focus_areas: string[]
           id: string
+          modules: string[]
           notes: string
+          surface: string
           updated_at: string
         }
         Insert: {
@@ -28,7 +30,9 @@ export type Database = {
           email: string
           focus_areas?: string[]
           id?: string
+          modules?: string[]
           notes?: string
+          surface?: string
           updated_at?: string
         }
         Update: {
@@ -36,7 +40,9 @@ export type Database = {
           email?: string
           focus_areas?: string[]
           id?: string
+          modules?: string[]
           notes?: string
+          surface?: string
           updated_at?: string
         }
         Relationships: []

@@ -8,6 +8,8 @@ create table if not exists public.inquiry_leads (
   id uuid primary key default uuid_generate_v4(),
   email text not null,
   focus_areas text[] not null default '{}'::text[],
+  surface text not null default '',
+  modules text[] not null default '{}'::text[],
   notes text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
