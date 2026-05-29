@@ -7,6 +7,7 @@ import 'package:parallel_paradigm_org/nav.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_data.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_shell.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_simulation.dart';
+import 'package:parallel_paradigm_org/paradigm/widgets/ontology_backdrop.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/pixel_motif.dart';
 import 'package:parallel_paradigm_org/theme.dart';
 
@@ -125,6 +126,7 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
                       if (phone) {
                         return _StoryViewport(
                           accent: accent,
+                          projectId: project.id,
                           objective: _objective,
                           beats: beats,
                           controller: _controller,
@@ -158,6 +160,7 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
                         width: rightWidth,
                         child: _StoryViewport(
                           accent: accent,
+                          projectId: project.id,
                           objective: _objective,
                           beats: beats,
                           controller: _controller,
@@ -524,6 +527,7 @@ class _ObjectiveBottomSheet extends StatelessWidget {
 class _StoryViewport extends StatefulWidget {
   const _StoryViewport({
     required this.accent,
+    required this.projectId,
     required this.objective,
     required this.beats,
     required this.controller,
@@ -533,6 +537,7 @@ class _StoryViewport extends StatefulWidget {
   });
 
   final Color accent;
+  final String projectId;
   final String objective;
   final List<_StoryBeat> beats;
   final PageController controller;
@@ -583,10 +588,10 @@ class _StoryViewportState extends State<_StoryViewport> {
             Positioned.fill(
               child: IgnorePointer(
                 child: Opacity(
-                  opacity: 0.38,
+                  opacity: 1,
                   child: Transform.translate(
-                    offset: Offset((_hover.dx - 240) * 0.01, (_hover.dy - 240) * 0.01),
-                    child: ParadigmPixelMotif(keyword: widget.objective, size: 520, color: Colors.white.withValues(alpha: 0.10)),
+                    offset: Offset((_hover.dx - 240) * 0.012, (_hover.dy - 240) * 0.012),
+                    child: ParadigmOntologyBackdrop(projectId: widget.projectId, keyword: widget.objective, accent: accent, opacity: 0.26),
                   ),
                 ),
               ),

@@ -62,7 +62,7 @@ class GridPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              'Index'.toUpperCase(),
+                              'Case Study Library'.toUpperCase(),
                               style: ParadigmTypography.mono(context).copyWith(
                                 fontSize: 11,
                                 letterSpacing: 2.8,
@@ -77,6 +77,11 @@ class GridPage extends StatelessWidget {
                                 letterSpacing: -0.4,
                                 color: Colors.white,
                               ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Select a case study to open its cinematic SDLC sandbox: objectives → phases → mechanisms.',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: ParadigmColors.textMuted, height: 1.45),
                             ),
                             const SizedBox(height: 14),
                             Wrap(

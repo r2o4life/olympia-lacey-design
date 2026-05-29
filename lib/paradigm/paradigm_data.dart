@@ -55,10 +55,21 @@ class ParadigmStoryBeatCopy {
 /// distinct story beat (MECE-aligned) rather than generic edtech tropes.
 class ParadigmNarrativeLibrary {
   static ParadigmStoryBeatCopy? beatFor({required String projectId, required String objective, required String phase}) {
-    if (projectId != 'bridge') return null;
-    final obj = _bridgebound[objective];
-    if (obj == null) return null;
-    return obj[_normalizePhase(phase)];
+    final normalizedPhase = _normalizePhase(phase);
+
+    if (projectId == 'bridge') {
+      final obj = _bridgebound[objective];
+      if (obj == null) return null;
+      return obj[normalizedPhase];
+    }
+
+    if (projectId == 'tipzero') {
+      final obj = _tipzero[objective];
+      if (obj == null) return null;
+      return obj[normalizedPhase];
+    }
+
+    return null;
   }
 
   static String _normalizePhase(String phase) {
@@ -294,6 +305,234 @@ class ParadigmNarrativeLibrary {
       ),
     },
   };
+
+  /// TipZero story library.
+  ///
+  /// TipZero is an infrastructure-level intervention: it normalizes a
+  /// pressure-free zero-tip default while preserving (and stabilizing) worker
+  /// supplemental income via asynchronous, sponsor-funded micro-incentives.
+  static const Map<String, Map<String, ParadigmStoryBeatCopy>> _tipzero = {
+    'User Growth': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Map tipping fatigue as a churn engine',
+        body:
+            'TipZero growth starts with a cultural reversal: POS systems turned gratuity into coercion, and customers responded with avoidance, resentment, and lower repeat visits.\n\n'
+            'We observe real checkout behavior: where people hesitate on 18–25% prompts, how staff braces for awkwardness, and how merchants absorb reputational damage.\n\n'
+            'Output: a friction map that treats tipping fatigue as a retention problem — not a moral debate.',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Prove the zero-pressure default increases return visits',
+        body:
+            'The wedge is simple: make “Zero Tip” socially normal and operationally fast.\n\n'
+            'We validate that removing the forced prompt reduces checkout dwell time and restores privacy — while worker bonuses still land via alternative rails.\n\n'
+            'Success metric: repeat-visit lift + faster lines, without worker income collapsing.',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: “TipZero Certified” as a trust badge',
+        body:
+            'We prototype the network effect: customers seek establishments that don’t tip-shame.\n\n'
+            'The experience is a permission slip: pay the base price now, reward later if you choose — or let sponsors fund the bonus.\n\n'
+            'Prototype success: sentiment improves instantly and merchants feel safer adopting.',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Frictionless onboarding for merchants + staff',
+        body:
+            'We build growth as operations: a clean merchant onboarding path, a staff enrollment flow that doesn’t feel like surveillance, and a customer experience that never blocks checkout.\n\n'
+            'The system must integrate with existing POS rails or fall back to standalone QR infrastructure.\n\n'
+            'Outcome: density compounds — each venue becomes a node in a trust network.',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Hyper-local clusters to trigger network effects',
+        body:
+            'We launch in neighborhood clusters where “TipZero Certified” has visible meaning.\n\n'
+            'We measure a systemic story: more trust → more visits → higher sponsor demand → more worker bonuses.\n\n'
+            'If the loop closes, growth compounds without paid acquisition becoming the only lever.',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Reduce friction until the default feels inevitable',
+        body:
+            'Iteration removes anything that reintroduces guilt or confusion.\n\n'
+            'We tune messaging, timing, and the post-transaction engagement so the platform stays non-adversarial — a quiet infrastructure layer.\n\n'
+            'Win condition: customers stop thinking about the tip screen entirely, and merchants see retention rise.',
+      ),
+    },
+    'Monetization': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Outside liquidity, not higher percentages',
+        body:
+            'TipZero monetization redesigns who funds supplemental income.\n\n'
+            'Merchants can’t raise wages enough without breaking demand; customers are exhausted by hidden “tip inflation.” The system needs outside liquidity — sponsors and post-transaction value exchange — to bridge the gap.\n\n'
+            'Output: a multi-sided value model where the customer is not the sole payer of worker stability.',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Make the value exchange instantly legible',
+        body:
+            'The monetization moment works only if it reads as fair.\n\n'
+            'We prove sponsor-funded bonuses can produce predictable micro-income without hijacking checkout.\n\n'
+            'Success metric: sponsor conversion + payout reliability + customer sentiment (no coercion).',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Bonus triggers without “invalid traffic” risk',
+        body:
+            'We prototype bonus triggers (reviews, lightweight engagements, sponsor matches) while designing explicitly against ad-fraud dynamics.\n\n'
+            'Principle: the UX event (customer intent) and the revenue attribution event (ad network rules) cannot be the same thing.\n\n'
+            'Prototype success: compliance-safe incentives that still feel human.',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: A provable ledger for bonuses and payouts',
+        body:
+            'We build a performance ledger that can answer one question without ambiguity: why did this worker receive this bonus?\n\n'
+            'Payout boundaries are hardened: transparent states, reconciliations, and safe-fail behaviors.\n\n'
+            'This is the infrastructure layer that prevents the system from degrading into suspicion.',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Instrument revenue quality, not vanity clicks',
+        body:
+            'We launch measurement focused on integrity: payout correctness, anomaly rates, and sponsor ROI tied to real-world attention.\n\n'
+            'Worker metrics track stability (volatility reduction), not spikes.\n\n'
+            'If the numbers lie, the marketplace collapses — so measurement is part of the product.',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Tune the pool toward predictable income',
+        body:
+            'Iteration stabilizes worker earnings without reintroducing customer pressure.\n\n'
+            'We tune sponsor matching, bonus timing, and eligibility rules so income is steady and understandable.\n\n'
+            'Goal: a dignified, multi-source supplemental income stream that feels like infrastructure.',
+      ),
+    },
+    'Improved Governance': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Governance is the right to operate',
+        body:
+            'TipZero sits inside contested terrain: tip-credit laws, tax reporting, wage optics, and platform policy.\n\n'
+            'We identify where merchants get punished (audits, disputes, confusion) and where workers lose trust (unclear payout status).\n\n'
+            'Output: a governance model that treats compliance as product design, not paperwork.',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Transparent reporting without extra labor',
+        body:
+            'We prove that structured supplemental income tracking reduces merchant risk.\n\n'
+            'The system produces human-readable records: what was earned, why, and how it is reported.\n\n'
+            'Success metric: fewer disputes, faster reconciliation, higher worker trust.',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Guardrails that don’t collapse UX',
+        body:
+            'We prototype overrides, corrections, sponsor rule changes, and edge-case disputes.\n\n'
+            'Principle: dignity first — the customer never feels policed and the worker never feels tricked.\n\n'
+            'If controls are heavy-handed, adoption fails.',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Auditability that survives scrutiny',
+        body:
+            'We build immutable histories where it matters: payout events, eligibility decisions, and sponsor matches.\n\n'
+            'Policies are explicit and versioned so changes can be explained.\n\n'
+            'This is how the product scales across jurisdictions and partners.',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Operational playbooks for real-world edge cases',
+        body:
+            'We ship playbooks for disputes, audit requests, payout reversals, and merchant offboarding.\n\n'
+            'Governance isn’t theoretical — it’s the decisions you’ll be forced to make under pressure.\n\n'
+            'If playbooks are missing, the product becomes a liability.',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Policy tuning driven by friction + disputes',
+        body:
+            'Iteration updates rules based on dispute patterns, abuse attempts, and regulatory shifts.\n\n'
+            'Changes are communicated in plain language to workers and merchants.\n\n'
+            'Win: compliance that feels like stability, not bureaucracy.',
+      ),
+    },
+    'Improved Security': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Threat model the bonus economy',
+        body:
+            'TipZero creates an incentive surface: wherever money flows, abuse follows.\n\n'
+            'We map threats: spoofed engagement, collusion, location fraud, and invalid traffic that can get partners banned.\n\n'
+            'Output: a risk taxonomy aligned to ad network compliance and payout integrity.',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Make abuse expensive and failure safe',
+        body:
+            'We prove the system can resist obvious abuse without harming legitimate users.\n\n'
+            'Security must not slow checkout; it must operate as invisible boundaries.\n\n'
+            'Success metric: reduced anomaly rates with minimal false positives.',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Secure state transitions for payouts',
+        body:
+            'We prototype the lifecycle of a bonus: intent → eligibility → attribution → payout → reporting.\n\n'
+            'Every step is an explicit state transition, so exploits can’t hide in undefined behavior.\n\n'
+            'Prototype success: it fails safely, clearly, and recoverably.',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Least-privilege access + hardened boundaries',
+        body:
+            'We build strict server-side validation, least-privilege access control, and defensive logging.\n\n'
+            'Payout actions require strong guarantees; sponsor events require integrity checks.\n\n'
+            'Security is the boundary that keeps the marketplace credible.',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Monitoring + incident readiness',
+        body:
+            'We launch monitoring for real adversaries: spikes, replay patterns, suspicious location behavior, and invalid traffic signals.\n\n'
+            'Incidents are not “if” — they’re “when.” We ship thresholds and operator tools.\n\n'
+            'If we can’t respond fast, partners will leave.',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Hardening sprints + dependency reviews',
+        body:
+            'Iteration is continuous hardening: adjust heuristics, review dependencies, and patch exploit patterns.\n\n'
+            'Security work is not a hidden tax — it’s why the system remains operable at scale.\n\n'
+            'A secure bonus economy is a durable one.',
+      ),
+    },
+    'Increased App Engagement': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Engagement is dignity, not dopamine',
+        body:
+            'TipZero doesn’t gamify tipping. It removes coercion and replaces it with optional, value-driven participation.\n\n'
+            'We study what each actor needs: customers want privacy and control; workers want clarity and predictability; merchants want stability.\n\n'
+            'Output: an engagement model built on micro-wins that reduce awkwardness.',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Asynchronous reward moments that feel voluntary',
+        body:
+            'We prove engagement without pressure: post-transaction prompts that can be ignored, sponsor matches that feel positive, and transparent worker dashboards.\n\n'
+            'The system earns attention by respecting it.\n\n'
+            'Success metric: repeat engagement without increased checkout time.',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Post-transaction touchpoints that build trust',
+        body:
+            'We prototype touchpoints after payment: leave a review, sponsor a bonus, send a thank-you.\n\n'
+            'Because the payment is complete, the user feels agency — not guilt.\n\n'
+            'Prototype success: tone stays non-adversarial, respectful, fast.',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Performance budgets (reliability is engagement)',
+        body:
+            'We build latency-first UI: fast loading, clear states, and zero ambiguity around payout outcomes.\n\n'
+            'Workers get transparent dashboards; customers get frictionless checkout; merchants get operational clarity.\n\n'
+            'Reliability becomes the engagement engine.',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Measure loop health, not vanity metrics',
+        body:
+            'We launch “loop health” instrumentation: return rates, sponsor funding rate, and worker income predictability.\n\n'
+            'We avoid metrics that incentivize coercive prompts.\n\n'
+            'If the loop stays healthy, the social contract is restored.',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Sharpen timing until it feels natural',
+        body:
+            'Iteration tunes timing and language.\n\n'
+            'We remove anything that feels like tip-shaming and keep what feels like optional support.\n\n'
+            'Finish line: rewarding service is easy — and refusing is not socially punished.',
+      ),
+    },
+  };
 }
 
 class ParadigmProjects {
@@ -373,62 +612,67 @@ class ParadigmProjects {
       id: 'tipzero',
       index: '02',
       title: 'TipZero',
-      focus: 'Sponsored Micropayments',
+      focus: 'Sponsored Supplemental Income',
       cinematic: ParadigmProjectCinematic(
         kicker: 'Index narrative sandbox',
         title: 'TipZero — execution mapped to objectives',
         subtitle:
-            'A cinematic SDLC narrative that ties market mechanics to systems constraints. Each node expands into a live viewport showing the phase-by-phase scaffolding needed to ship safely.',
+            'A cinematic SDLC narrative that treats TipZero as infrastructure: normalize a pressure-free zero-tip default while stabilizing worker income through asynchronous, sponsor-funded micro-incentives.',
         nodes: {
           'User Growth': [
-            'Discovery: merchant acquisition + employee adoption wedges',
-            'Prototype: “tap-to-reward” activation loop + education UX',
-            'Build: lightweight account model + frictionless entry',
-            'Launch: store listing experiments + onboarding cohorts',
-            'Iterate: retention loops + referral incentives',
+            'Discovery: quantify tipping fatigue as churn + reputational drag',
+            'Signal: prove “zero-pressure default” increases repeat visits',
+            'Prototype: TipZero Certified trust badge + hyper-local discovery',
+            'Build: POS/QR onboarding rails for merchants + staff',
+            'Launch: neighborhood clusters to trigger network effects',
+            'Iterate: reduce friction until the default feels inevitable',
           ],
           'Monetization': [
-            'Discovery: rewarded-ad economics + payout constraints',
-            'Prototype: tip trigger moments + value exchange clarity',
-            'Build: performance ledger + strategic decoupling for SDK attribution',
-            'Launch: funnel instrumentation + revenue-per-session',
-            'Iterate: partner optimization + payout tuning',
+            'Discovery: outside liquidity (sponsors) vs tip inflation',
+            'Signal: value exchange legibility + payout reliability',
+            'Prototype: bonus triggers without invalid-traffic exposure',
+            'Build: provable ledger for bonuses + reconciliation boundaries',
+            'Launch: instrument revenue quality (integrity > clicks)',
+            'Iterate: tune the pool toward predictable worker income',
           ],
           'Improved Governance': [
-            'Discovery: policy constraints (App Store + ad networks)',
-            'Prototype: compliance-first flow design + guardrails',
-            'Build: quality gates + fraud-prevention checks (invalid-traffic aware)',
-            'Launch: audit visibility + operational overrides',
-            'Iterate: rule refinement + anomaly playbooks',
+            'Discovery: tip-credit, tax, and platform policy constraints',
+            'Signal: transparent reporting without added merchant labor',
+            'Prototype: guardrails + overrides that preserve dignity',
+            'Build: auditability + versioned policy rules',
+            'Launch: operational playbooks for disputes and audits',
+            'Iterate: tune rules driven by friction + dispute patterns',
           ],
           'Improved Security': [
-            'Discovery: risk model (abuse, spoofing, invalid traffic)',
-            'Prototype: secure state transitions + hardened flows',
-            'Build: access control + safe payout boundaries',
-            'Launch: monitoring + incident response thresholds',
-            'Iterate: security reviews + dependency hardening',
+            'Discovery: threat model the bonus economy (fraud + invalid traffic)',
+            'Signal: make abuse expensive with minimal false positives',
+            'Prototype: secure state transitions for eligibility → payout',
+            'Build: least-privilege access + hardened payout boundaries',
+            'Launch: monitoring, thresholds, and incident readiness',
+            'Iterate: hardening sprints + dependency reviews',
           ],
           'Increased App Engagement': [
-            'Discovery: habit loop design + reward timing',
-            'Prototype: micro-interactions + feedback cues',
-            'Build: performance budgets + latency-first UI',
-            'Launch: feature flags + A/B motion variants',
-            'Iterate: engagement scoring + nudges',
+            'Discovery: engagement as dignity (not dopamine mechanics)',
+            'Signal: voluntary, asynchronous reward moments',
+            'Prototype: post-transaction touchpoints that build trust',
+            'Build: transparency dashboards + reliability budgets',
+            'Launch: measure loop health (stability + sentiment)',
+            'Iterate: sharpen timing until it feels socially natural',
           ],
         },
       ),
       data: {
         lensMarket: ParadigmProjectLensData(
-          headline: 'Eradicating Wallet Fatigue',
-          metric: 'Net-New Monetization Funnel',
+          headline: 'Restore the Social Contract at Checkout',
+          metric: 'Checkout Dwell Time + Repeat Visit Lift',
           narrative:
-              'Analyzed the cashless paradox: consumers want to reward good service, but wallet fatigue prevents action. We designed a Digital Tip Jar that triggers merchant-funded employee bonuses via rewarded ad engagement. We led the end-to-end 0-to-1 lifecycle, navigating stringent App Store review processes to launch a market-ready product that opens a new funding avenue.',
+              'TipZero is positioned as an infrastructure intervention, not a “tipping app.” Modern POS flows weaponized guilt with intrusive percentage screens, breaking consumer trust while leaving workers exposed to volatile income. TipZero normalizes a pressure-free “zero tip” default at the moment of payment and shifts supplemental earning into asynchronous, value-driven mechanisms (sponsor-funded matches, post-transaction engagements), so customers regain dignity without collapsing worker earnings. Merchants adopt because reduced friction increases retention and protects reputation; the system scales as “TipZero Certified” becomes a trust signal that drives intentional consumer migration.',
         ),
         lensSystems: ParadigmProjectLensData(
-          headline: 'Friction Decoupling & Ad SDK Compliance',
-          metric: 'Proprietary Performance Ledger',
+          headline: 'Ledger-First Bonuses with Compliance Boundaries',
+          metric: 'Payout Correctness + Revenue Integrity',
           narrative:
-              'Identified strict AdSense and AppLovin SDK compliance constraints regarding "Invalid Traffic". We architected a "Strategic Decoupling" mechanism—a proprietary Performance Credit ledger separating frontend UX triggers from backend SDK compliance. This decoupled architecture ensures accurate attribution of ad revenue generation versus verifiable employee micropayment payouts.',
+              'TipZero’s system design treats incentives as a high-stakes marketplace: money moves, so abuse follows. The architecture separates the customer’s checkout experience from sponsor/ad attribution rules, so the product can remain fast, pressure-free, and compliant under “invalid traffic” scrutiny. A ledger-first bonus model makes every payout explainable (“why did this worker receive this bonus?”) while hardened state transitions, least-privilege access, and monitoring thresholds protect the platform from fraud, spoofing, and dispute-driven churn. Governance is embedded as product: transparent reporting, versioned policies, and audit-ready histories that scale across jurisdictions.',
         ),
       },
     ),
