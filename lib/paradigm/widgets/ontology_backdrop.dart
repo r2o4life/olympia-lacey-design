@@ -10,7 +10,14 @@ import 'package:flutter/material.dart';
 /// This widget renders a low-contrast, animated diagram layer that varies by
 /// [projectId] while staying consistent with the overall Paradigm aesthetic.
 class ParadigmOntologyBackdrop extends StatefulWidget {
-  const ParadigmOntologyBackdrop({super.key, required this.projectId, required this.keyword, required this.accent, this.opacity = 0.22});
+  const ParadigmOntologyBackdrop({
+    super.key,
+    required this.projectId,
+    required this.keyword,
+    required this.accent,
+    this.opacity = 0.22,
+    this.complexity,
+  });
 
   /// Known values in this repo include: `tipzero`, `bridge`.
   final String projectId;
@@ -23,6 +30,10 @@ class ParadigmOntologyBackdrop extends StatefulWidget {
 
   /// Overall opacity multiplier.
   final double opacity;
+
+  /// Optional hint to reduce paint complexity on very small viewports.
+  /// If null, complexity auto-scales by canvas size.
+  final double? complexity;
 
   @override
   State<ParadigmOntologyBackdrop> createState() => _ParadigmOntologyBackdropState();
@@ -56,6 +67,7 @@ class _ParadigmOntologyBackdropState extends State<ParadigmOntologyBackdrop> wit
               accent: widget.accent,
               t: _controller.value,
               opacity: widget.opacity,
+              complexity: widget.complexity,
             ),
           );
         },
@@ -65,13 +77,14 @@ class _ParadigmOntologyBackdropState extends State<ParadigmOntologyBackdrop> wit
 }
 
 class _OntologyBackdropPainter extends CustomPainter {
-  _OntologyBackdropPainter({required this.projectId, required this.keyword, required this.accent, required this.t, required this.opacity});
+  _OntologyBackdropPainter({required this.projectId, required this.keyword, required this.accent, required this.t, required this.opacity, required this.complexity});
 
   final String projectId;
   final String keyword;
   final Color accent;
   final double t;
   final double opacity;
+  final double? complexity;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -82,6 +95,10 @@ class _OntologyBackdropPainter extends CustomPainter {
 
     final seed = _stableHash('$projectId::$keyword');
     final rng = math.Random(seed);
+
+    // Complexity factor: 1.0 = full detail, lower = fewer primitives.
+    final autoComplexity = (size.shortestSide / 760).clamp(0.62, 1.0);
+    final c = (complexity ?? autoComplexity).clamp(0.55, 1.0);
 
     // Global drift to make it feel alive but not distracting.
     final dx = math.sin(t * math.pi * 2) * 10;
@@ -113,7 +130,7 @@ class _OntologyBackdropPainter extends CustomPainter {
     final accentDot = Paint()..color = accent.withValues(alpha: 0.20 * opacity);
 
     // A faint field of “stars” so the layer doesn't look like a flat pattern.
-    final stars = 42;
+    final stars = (42 * c).round().clamp(18, 42);
     for (int i = 0; i < stars; i++) {
       final p = Offset(rng.nextDouble() * size.width, rng.nextDouble() * size.height);
       final r = (rng.nextDouble() * 1.3) + 0.4;
@@ -142,7 +159,7 @@ class _OntologyBackdropPainter extends CustomPainter {
     // TIPZERO = “checkout physiology”: flow lines + nodes + token pulses.
     // Visual metaphor: a set of parallel rails (POS → user → worker) with
     // liquidity/token nodes interleaving.
-    final lanes = 5;
+    final lanes = (5 * (complexity ?? 1.0)).round().clamp(3, 5);
     final top = size.height * 0.16;
     final bottom = size.height * 0.88;
     final laneGap = (bottom - top) / (lanes - 1);
@@ -166,7 +183,7 @@ class _OntologyBackdropPainter extends CustomPainter {
       canvas.drawPath(pulse, accentStroke);
 
       // Nodes on each lane.
-      final nodes = 4 + rng.nextInt(3);
+      final nodes = (4 + rng.nextInt(3));
       for (int n = 0; n < nodes; n++) {
         final x = size.width * (0.10 + rng.nextDouble() * 0.82);
         final r = 3.0 + rng.nextDouble() * 3.2;
@@ -177,7 +194,7 @@ class _OntologyBackdropPainter extends CustomPainter {
     }
 
     // Token glyphs (small rounded squares) that read like “units”.
-    final tokens = 10;
+    final tokens = (10 * (complexity ?? 1.0)).round().clamp(5, 10);
     for (int i = 0; i < tokens; i++) {
       final center = Offset(size.width * (0.12 + rng.nextDouble() * 0.76), size.height * (0.18 + rng.nextDouble() * 0.70));
       final s = 10.0 + rng.nextDouble() * 16;
@@ -243,7 +260,7 @@ class _OntologyBackdropPainter extends CustomPainter {
     }
 
     // Message capsules: represent “signals” traveling.
-    final capsules = 9;
+    final capsules = (9 * (complexity ?? 1.0)).round().clamp(4, 9);
     for (int i = 0; i < capsules; i++) {
       final center = Offset(size.width * (0.10 + rng.nextDouble() * 0.84), size.height * (0.14 + rng.nextDouble() * 0.76));
       final w = 26 + rng.nextDouble() * 42;
@@ -300,6 +317,7 @@ class _OntologyBackdropPainter extends CustomPainter {
         oldDelegate.keyword != keyword ||
         oldDelegate.accent != accent ||
         oldDelegate.t != t ||
-        oldDelegate.opacity != opacity;
+        oldDelegate.opacity != opacity ||
+        oldDelegate.complexity != complexity;
   }
 }

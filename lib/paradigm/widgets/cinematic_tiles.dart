@@ -678,9 +678,10 @@ class _KeywordDemoViewport extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewport = ParadigmViewport.of(context);
     final labelStyle = ParadigmTypography.mono(context).copyWith(
-      fontSize: 10,
-      letterSpacing: 2.6,
+      fontSize: viewport.isCompact ? 9.5 : 10,
+      letterSpacing: viewport.isCompact ? 2.3 : 2.6,
       color: ParadigmColors.textFaint,
       fontWeight: FontWeight.w700,
     );
@@ -711,51 +712,83 @@ class _KeywordDemoViewport extends StatelessWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: Text('LIVE SAMPLE'.toUpperCase(), style: labelStyle)),
-                      InkWell(
-                        onTap: onClose,
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: Icon(Icons.close_rounded, size: 18, color: Colors.white.withValues(alpha: 0.85)),
-                        ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = viewport.isCompact || constraints.maxHeight < 520;
+                final pad = viewport.insetAll(14);
+                final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.6,
+                  color: Colors.white,
+                  fontSize: compact ? 18 : null,
+                );
+                final businessStyle = ParadigmTypography.mono(context).copyWith(
+                  fontSize: compact ? 9.8 : 10.5,
+                  letterSpacing: compact ? 2.1 : 2.4,
+                  color: Colors.white.withValues(alpha: 0.86),
+                  fontWeight: FontWeight.w700,
+                );
+
+                final header = Row(
+                  children: [
+                    Expanded(child: Text('LIVE SAMPLE'.toUpperCase(), style: labelStyle)),
+                    InkWell(
+                      onTap: onClose,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(Icons.close_rounded, size: 18, color: Colors.white.withValues(alpha: 0.85)),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    keyword.toUpperCase(),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.6,
-                      color: Colors.white,
+                    ),
+                  ],
+                );
+
+                final body = _KeywordDemoBody(keyword: keyword, accent: accent, business: business, demoSet: demoSet, demoTemplate: demoTemplate);
+
+                if (!compact) {
+                  return Padding(
+                    padding: pad,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        header,
+                        SizedBox(height: viewport.gap(8)),
+                        Text(keyword.toUpperCase(), style: titleStyle),
+                        SizedBox(height: viewport.gap(10)),
+                        Text(business.toUpperCase(), style: businessStyle),
+                        SizedBox(height: viewport.gap(14)),
+                        Expanded(child: body),
+                        SizedBox(height: viewport.gap(10)),
+                        Text('SELECT ANOTHER NODE TO GENERATE A NEW TEMPLATE.'.toUpperCase(), style: labelStyle),
+                      ],
+                    ),
+                  );
+                }
+
+                // Compact: make it scroll-safe.
+                return Padding(
+                  padding: pad,
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        header,
+                        SizedBox(height: viewport.gap(8)),
+                        Text(keyword.toUpperCase(), style: titleStyle),
+                        SizedBox(height: viewport.gap(8)),
+                        Text(business.toUpperCase(), style: businessStyle),
+                        SizedBox(height: viewport.gap(12)),
+                        SizedBox(height: 240 * viewport.scale, child: body),
+                        SizedBox(height: viewport.gap(10)),
+                        Text('SELECT ANOTHER NODE TO GENERATE A NEW TEMPLATE.'.toUpperCase(), style: labelStyle),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    business.toUpperCase(),
-                    style: ParadigmTypography.mono(context).copyWith(
-                      fontSize: 10.5,
-                      letterSpacing: 2.4,
-                      color: Colors.white.withValues(alpha: 0.86),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Expanded(child: _KeywordDemoBody(keyword: keyword, accent: accent, business: business, demoSet: demoSet, demoTemplate: demoTemplate)),
-                  const SizedBox(height: 10),
-                  Text('SELECT ANOTHER NODE TO GENERATE A NEW TEMPLATE.'.toUpperCase(), style: labelStyle),
-                ],
-              ),
+                );
+              },
             ),
           ],
         ),

@@ -68,6 +68,64 @@ class AppRadius {
   static const double xl = 24.0;
 }
 
+/// Viewport heuristics for render-constrained devices.
+///
+/// This app has several “cinematic” panels that were originally tuned for
+/// desktop/tablet density. On small viewports (especially short heights), we
+/// prefer:
+/// - smaller padding
+/// - slightly reduced typography
+/// - scrollable content blocks instead of fixed vertical stacks
+/// - fewer background primitives (to reduce visual noise + paint cost)
+@immutable
+class ParadigmViewport {
+  const ParadigmViewport._({required this.size, required this.isCompactHeight, required this.scale, required this.devicePixelRatio});
+
+  final ParadigmViewportSize size;
+  final bool isCompactHeight;
+
+  /// Multiplicative UI scale for spacing + typography (clamped).
+  final double scale;
+
+  /// Exposed for painters/quality decisions.
+  final double devicePixelRatio;
+
+  static ParadigmViewport of(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final w = media.size.width;
+    final h = media.size.height;
+    final dpr = media.devicePixelRatio;
+
+    final size = (w < 420)
+        ? ParadigmViewportSize.compact
+        : (w < 900)
+            ? ParadigmViewportSize.regular
+            : ParadigmViewportSize.wide;
+
+    // “Short phone” (or landscape phone) is the hardest render constraint.
+    final compactHeight = h < 760;
+
+    // Scale down gently on compact phones, never below 0.84.
+    final base = switch (size) {
+      ParadigmViewportSize.compact => 0.90,
+      ParadigmViewportSize.regular => 1.0,
+      ParadigmViewportSize.wide => 1.0,
+    };
+    final scale = (compactHeight ? base - 0.04 : base).clamp(0.84, 1.0);
+
+    return ParadigmViewport._(size: size, isCompactHeight: compactHeight, scale: scale, devicePixelRatio: dpr);
+  }
+
+  bool get isCompact => size == ParadigmViewportSize.compact;
+  bool get isWide => size == ParadigmViewportSize.wide;
+
+  double gap(double v) => v * scale;
+  EdgeInsets insetAll(double v) => EdgeInsets.all(v * scale);
+  EdgeInsets insetSymmetric({double h = 0, double v = 0}) => EdgeInsets.symmetric(horizontal: h * scale, vertical: v * scale);
+}
+
+enum ParadigmViewportSize { compact, regular, wide }
+
 // =============================================================================
 // TEXT STYLE EXTENSIONS
 // =============================================================================

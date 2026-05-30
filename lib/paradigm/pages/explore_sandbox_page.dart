@@ -67,6 +67,7 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
 
   @override
   Widget build(BuildContext context) {
+    final viewport = ParadigmViewport.of(context);
     final project = _project;
     if (project == null) {
       return Scaffold(
@@ -113,10 +114,12 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
               Positioned.fill(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg : AppSpacing.xl,
-                    104,
-                    MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg : AppSpacing.xl,
-                    24,
+                    MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg * viewport.scale : AppSpacing.xl,
+                    // The header is fixed-position. On short phones, reduce the
+                    // reserved top padding so content doesn't get squeezed.
+                    viewport.isCompactHeight ? 92 : 104,
+                    MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg * viewport.scale : AppSpacing.xl,
+                    viewport.isCompactHeight ? 16 : 24,
                   ),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
@@ -201,12 +204,13 @@ class _ExploreHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewport = ParadigmViewport.of(context);
     return Positioned(
       left: 0,
       right: 0,
       top: 0,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: viewport.insetAll(viewport.isCompactHeight ? AppSpacing.lg : AppSpacing.xl),
         decoration: BoxDecoration(
           color: ParadigmColors.panel,
           border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
@@ -554,6 +558,7 @@ class _StoryViewportState extends State<_StoryViewport> {
 
   @override
   Widget build(BuildContext context) {
+    final viewport = ParadigmViewport.of(context);
     final beats = widget.beats;
     final accent = widget.accent;
 
@@ -591,14 +596,20 @@ class _StoryViewportState extends State<_StoryViewport> {
                   opacity: 1,
                   child: Transform.translate(
                     offset: Offset((_hover.dx - 240) * 0.012, (_hover.dy - 240) * 0.012),
-                    child: ParadigmOntologyBackdrop(projectId: widget.projectId, keyword: widget.objective, accent: accent, opacity: 0.26),
+                    child: ParadigmOntologyBackdrop(
+                      projectId: widget.projectId,
+                      keyword: widget.objective,
+                      accent: accent,
+                      opacity: 0.26,
+                      complexity: viewport.isCompactHeight ? 0.70 : null,
+                    ),
                   ),
                 ),
               ),
             ),
             Positioned.fill(
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: viewport.insetAll(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -610,7 +621,7 @@ class _StoryViewportState extends State<_StoryViewport> {
                       controller: widget.controller,
                       onOpenObjectives: widget.onOpenObjectives,
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: viewport.gap(14)),
                     Expanded(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -661,6 +672,7 @@ class _ViewportTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewport = ParadigmViewport.of(context);
     final canOpenObjectives = onOpenObjectives != null;
     return Wrap(
       spacing: 12,
@@ -690,7 +702,12 @@ class _ViewportTopBar extends StatelessWidget {
               // Internal (archived) label: "Customer-story reframe".
               // Client-facing: communicate value without process-language.
               'Customer journey'.toUpperCase(),
-              style: ParadigmTypography.mono(context).copyWith(fontSize: 11, letterSpacing: 2.6, color: ParadigmColors.textMuted, fontWeight: FontWeight.w800),
+              style: ParadigmTypography.mono(context).copyWith(
+                fontSize: viewport.isCompact ? 10.5 : 11,
+                letterSpacing: viewport.isCompact ? 2.3 : 2.6,
+                color: ParadigmColors.textMuted,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ],
         ),
@@ -823,75 +840,106 @@ class _StoryBeatPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              _PhasePill(accent: accent, phase: beat.phase),
-              Text(
-                'Beat ${(index + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}'.toUpperCase(),
-                style: ParadigmTypography.mono(context).copyWith(fontSize: 11, letterSpacing: 2.6, color: ParadigmColors.textFaint),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            beat.headline,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: -0.8, height: 1.05),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            beat.body,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: ParadigmColors.textMuted, height: 1.55),
-          ),
-          const SizedBox(height: 18),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.schema_rounded, size: 18, color: accent.withValues(alpha: 0.85)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'SDLC Thread'.toUpperCase(),
-                              style: ParadigmTypography.mono(context).copyWith(fontSize: 11, letterSpacing: 2.6, color: ParadigmColors.textFaint),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              beat.thread,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.86), height: 1.5),
-                            ),
-                            // Intentionally no author-notes / meta-disclaimers here.
-                            // The sandbox should read like a client-facing narrative.
-                          ],
+    final viewport = ParadigmViewport.of(context);
+    final pad = viewport.insetAll(AppSpacing.lg);
+
+    // The beat panel is content-dense; on short phones, we switch from a strict
+    // vertical stack (which easily overflows) to a scroll-safe column.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Even when the viewport is “tall enough”, the narrative body can be
+        // long (especially on narrow phones). If we rely on a strict `Column`
+        // without scrolling, the body text can force a RenderFlex overflow.
+        //
+        // So: always render the beat panel as a scroll-safe column, and use a
+        // min-height constraint + Spacer to keep the SDLC thread visually
+        // anchored near the bottom when content is short.
+        final compact = viewport.isCompact || constraints.maxHeight < 640;
+
+        final headlineStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.8,
+              height: 1.05,
+              fontSize: compact ? 26 : null,
+            );
+
+        final bodyStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(color: ParadigmColors.textMuted, height: 1.55, fontSize: compact ? 14 : null);
+
+        final metaStyle = ParadigmTypography.mono(context).copyWith(
+          fontSize: compact ? 10.5 : 11,
+          letterSpacing: compact ? 2.3 : 2.6,
+          color: ParadigmColors.textFaint,
+        );
+
+        final header = Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _PhasePill(accent: accent, phase: beat.phase),
+            Text('Beat ${(index + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}'.toUpperCase(), style: metaStyle),
+          ],
+        );
+
+        final threadCard = ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.18), border: Border.all(color: Colors.white.withValues(alpha: 0.08))),
+            child: Padding(
+              padding: viewport.insetAll(AppSpacing.lg),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.schema_rounded, size: 18, color: accent.withValues(alpha: 0.85)),
+                  SizedBox(width: viewport.gap(12)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('SDLC Thread'.toUpperCase(), style: metaStyle),
+                        SizedBox(height: viewport.gap(10)),
+                        Text(
+                          beat.thread,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.86), height: 1.5, fontSize: compact ? 13 : null),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        final threadHeight = compact ? viewport.gap(220) : viewport.gap(240);
+
+        return Padding(
+          padding: pad,
+          child: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - pad.vertical),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    header,
+                    SizedBox(height: viewport.gap(14)),
+                    Text(beat.headline, style: headlineStyle),
+                    SizedBox(height: viewport.gap(12)),
+                    Text(beat.body, style: bodyStyle),
+                    SizedBox(height: viewport.gap(18)),
+                    const Spacer(),
+                    SizedBox(height: threadHeight, child: threadCard),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
