@@ -34,7 +34,9 @@ class VanguardPage extends StatelessWidget {
                 child: ParadigmTopNav(
                   background: Colors.transparent,
                   showBottomBorder: false,
-                  left: const ParadigmBrandLockup(),
+                  // Avoid repeating “Parallel Paradigm” in the lockup: the word mark
+                  // is already rendered as a dedicated line inside ParadigmBrandLockup.
+                  left: const ParadigmBrandLockup(tagline: null),
                   right: _TopRightNav(
                     onInquiry: () => context.go(AppRoutes.inquiry),
                     onIndex: () => context.go(AppRoutes.grid),

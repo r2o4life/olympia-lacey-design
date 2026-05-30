@@ -88,6 +88,8 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
     final sdlc = objectiveSteps.map(_SdlcStep.parse).toList(growable: false);
     final beats = List.generate(sdlc.length, (i) => _StoryBeat.from(projectId: project.id, objective: _objective, step: sdlc[i], index: i));
 
+    final isPhone = MediaQuery.sizeOf(context).width < 740;
+
     // Align to requested phase if provided.
     final phase = _phase;
     if (phase != null) {
@@ -103,64 +105,32 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
       }
     }
 
+    final headerBar = _ExploreHeaderBar(
+      accent: accent,
+      projectTitle: project.title,
+      onBack: () => context.pop(),
+      onInquiry: () => context.go(AppRoutes.inquiry),
+      onIndex: () => context.go(AppRoutes.grid),
+    );
+
     return Scaffold(
       backgroundColor: ParadigmColors.bg,
       body: ParadigmShell(
         stage: ParadigmStage.explore,
         accessState: ParadigmAccessState.granted,
         child: SafeArea(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg * viewport.scale : AppSpacing.xl,
-                    // The header is fixed-position. On short phones, reduce the
-                    // reserved top padding so content doesn't get squeezed.
-                    viewport.isCompactHeight ? 92 : 104,
-                    MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg * viewport.scale : AppSpacing.xl,
-                    viewport.isCompactHeight ? 16 : 24,
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 980;
-                      final phone = constraints.maxWidth < 740;
-
-                      if (phone) {
-                        return _StoryViewport(
-                          accent: accent,
-                          projectId: project.id,
-                          objective: _objective,
-                          beats: beats,
-                          controller: _controller,
-                          pageIndex: _pageIndex,
-                          onChanged: (i) => setState(() => _pageIndex = i),
-                          onOpenObjectives: () => _showObjectiveSheet(project: project, accent: accent),
-                        );
-                      }
-
-                      final leftWidth = wide ? 320.0 : constraints.maxWidth;
-                      final rightWidth = wide ? (constraints.maxWidth - leftWidth - 16) : constraints.maxWidth;
-
-                      final left = SizedBox(
-                        width: leftWidth,
-                        child: _ObjectiveRail(
-                          project: project,
-                          objective: _objective,
-                          accent: accent,
-                          onSelect: (next) {
-                            if (next == _objective) return;
-                            setState(() {
-                              _objective = next;
-                              _pageIndex = 0;
-                            });
-                            _controller.jumpToPage(0);
-                          },
+          child: isPhone
+              ? Column(
+                  children: [
+                    headerBar,
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg * viewport.scale : AppSpacing.xl,
+                          AppSpacing.lg,
+                          MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg * viewport.scale : AppSpacing.xl,
+                          viewport.isCompactHeight ? 16 : 24,
                         ),
-                      );
-
-                      final right = SizedBox(
-                        width: rightWidth,
                         child: _StoryViewport(
                           accent: accent,
                           projectId: project.id,
@@ -169,32 +139,78 @@ class _ExploreSandboxPageState extends State<ExploreSandboxPage> {
                           controller: _controller,
                           pageIndex: _pageIndex,
                           onChanged: (i) => setState(() => _pageIndex = i),
+                          onOpenObjectives: () => _showObjectiveSheet(project: project, accent: accent),
                         ),
-                      );
+                      ),
+                    ),
+                  ],
+                )
+              : Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg * viewport.scale : AppSpacing.xl,
+                          // Non-phone: the header is fixed-position above the body.
+                          // Keep a stable reserved space.
+                          viewport.isCompactHeight ? 92 : 104,
+                          MediaQuery.sizeOf(context).width < 540 ? AppSpacing.lg * viewport.scale : AppSpacing.xl,
+                          viewport.isCompactHeight ? 16 : 24,
+                        ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final wide = constraints.maxWidth >= 980;
 
-                      if (wide) return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [left, const SizedBox(width: 16), Expanded(child: right)]);
-                      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [left, const SizedBox(height: 16), Expanded(child: right)]);
-                    },
-                  ),
+                            final leftWidth = wide ? 320.0 : constraints.maxWidth;
+                            final rightWidth = wide ? (constraints.maxWidth - leftWidth - 16) : constraints.maxWidth;
+
+                            final left = SizedBox(
+                              width: leftWidth,
+                              child: _ObjectiveRail(
+                                project: project,
+                                objective: _objective,
+                                accent: accent,
+                                onSelect: (next) {
+                                  if (next == _objective) return;
+                                  setState(() {
+                                    _objective = next;
+                                    _pageIndex = 0;
+                                  });
+                                  _controller.jumpToPage(0);
+                                },
+                              ),
+                            );
+
+                            final right = SizedBox(
+                              width: rightWidth,
+                              child: _StoryViewport(
+                                accent: accent,
+                                projectId: project.id,
+                                objective: _objective,
+                                beats: beats,
+                                controller: _controller,
+                                pageIndex: _pageIndex,
+                                onChanged: (i) => setState(() => _pageIndex = i),
+                              ),
+                            );
+
+                            if (wide) return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [left, const SizedBox(width: 16), Expanded(child: right)]);
+                            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [left, const SizedBox(height: 16), Expanded(child: right)]);
+                          },
+                        ),
+                      ),
+                    ),
+                    Positioned(left: 0, right: 0, top: 0, child: headerBar),
+                  ],
                 ),
-              ),
-              _ExploreHeader(
-                accent: accent,
-                projectTitle: project.title,
-                onBack: () => context.pop(),
-                onInquiry: () => context.go(AppRoutes.inquiry),
-                onIndex: () => context.go(AppRoutes.grid),
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
 }
 
-class _ExploreHeader extends StatelessWidget {
-  const _ExploreHeader({required this.accent, required this.projectTitle, required this.onBack, required this.onInquiry, required this.onIndex});
+class _ExploreHeaderBar extends StatelessWidget {
+  const _ExploreHeaderBar({required this.accent, required this.projectTitle, required this.onBack, required this.onInquiry, required this.onIndex});
 
   final Color accent;
   final String projectTitle;
@@ -205,45 +221,40 @@ class _ExploreHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewport = ParadigmViewport.of(context);
-    return Positioned(
-      left: 0,
-      right: 0,
-      top: 0,
-      child: Container(
-        padding: viewport.insetAll(viewport.isCompactHeight ? AppSpacing.lg : AppSpacing.xl),
-        decoration: BoxDecoration(
-          color: ParadigmColors.panel,
-          border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
-        ),
-        child: Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _HeaderChip(label: 'Back', icon: Icons.arrow_back_rounded, accent: accent, onTap: onBack),
-                Text(
-                  '$projectTitle — Sandbox'.toUpperCase(),
-                  style: ParadigmTypography.mono(context).copyWith(fontSize: 11, letterSpacing: 2.8, color: ParadigmColors.textMuted, fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _HeaderChip(label: 'Index', icon: Icons.grid_view_rounded, accent: ParadigmColors.textMuted, onTap: onIndex, subtle: true),
-                _HeaderChip(label: 'Inquiry', icon: Icons.north_east_rounded, accent: accent, onTap: onInquiry),
-              ],
-            ),
-          ],
-        ),
+    return Container(
+      padding: viewport.insetAll(viewport.isCompactHeight ? AppSpacing.lg : AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: ParadigmColors.panel,
+        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _HeaderChip(label: 'Back', icon: Icons.arrow_back_rounded, accent: accent, onTap: onBack),
+              Text(
+                '$projectTitle — Sandbox'.toUpperCase(),
+                style: ParadigmTypography.mono(context).copyWith(fontSize: 11, letterSpacing: 2.8, color: ParadigmColors.textMuted, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _HeaderChip(label: 'Index', icon: Icons.grid_view_rounded, accent: ParadigmColors.textMuted, onTap: onIndex, subtle: true),
+              _HeaderChip(label: 'Inquiry', icon: Icons.north_east_rounded, accent: accent, onTap: onInquiry),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -914,29 +925,45 @@ class _StoryBeatPanel extends StatelessWidget {
 
         final threadHeight = compact ? viewport.gap(220) : viewport.gap(240);
 
-        return Padding(
-          padding: pad,
-          child: ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - pad.vertical),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    header,
-                    SizedBox(height: viewport.gap(14)),
-                    Text(beat.headline, style: headlineStyle),
-                    SizedBox(height: viewport.gap(12)),
-                    Text(beat.body, style: bodyStyle),
-                    SizedBox(height: viewport.gap(18)),
-                    const Spacer(),
-                    SizedBox(height: threadHeight, child: threadCard),
-                  ],
+        // Important: avoid using `Spacer` / flex children inside a scroll view.
+        // On some web + mobile constraint combinations this can lead to
+        // unbounded-height flex errors and a “blank/frozen” viewport.
+        //
+        // Use slivers instead so the “thread card” can pin to the bottom
+        // when content is short, but naturally scroll when content is long.
+        return ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverPadding(
+                padding: pad,
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      header,
+                      SizedBox(height: viewport.gap(14)),
+                      Text(beat.headline, style: headlineStyle),
+                      SizedBox(height: viewport.gap(12)),
+                      Text(beat.body, style: bodyStyle),
+                      SizedBox(height: viewport.gap(18)),
+                    ],
+                    addAutomaticKeepAlives: false,
+                    addRepaintBoundaries: true,
+                  ),
                 ),
               ),
-            ),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(pad.left, 0, pad.right, pad.bottom),
+                sliver: SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(height: threadHeight, child: threadCard),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },

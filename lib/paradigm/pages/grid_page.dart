@@ -34,7 +34,8 @@ class GridPage extends StatelessWidget {
                     splashColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     hoverColor: Colors.transparent,
-                    child: const ParadigmBrandLockup(),
+                    // Avoid repeating the “Parallel Paradigm” callout in the hero.
+                    child: const ParadigmBrandLockup(tagline: null),
                   ),
                   right: Wrap(
                     spacing: 18,
@@ -71,7 +72,7 @@ class GridPage extends StatelessWidget {
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              'Olympia Lacey Design • Parallel Paradigm — proof of execution, rendered as systems.',
+                              'Olympia Lacey Design — proof of execution, rendered as systems.',
                               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -0.4,
