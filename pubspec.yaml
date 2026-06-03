@@ -31,5 +31,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/icons/dreamflow_icon.jpg
+  # Source-of-truth launcher icon
+  image_path: assets/images/Parallel_Paradigm_Black_on_White.png
   remove_alpha_ios: true
