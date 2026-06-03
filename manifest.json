@@ -11,7 +11,7 @@
     "icons": [
         {
             "src": "assets/assets/images/Parallel_Paradigm_Black_on_White.png",
-            "sizes": "512x512",
+            "sizes": "any",
             "type": "image/png",
             "purpose": "any"
         }
