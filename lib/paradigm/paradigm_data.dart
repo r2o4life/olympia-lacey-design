@@ -69,6 +69,12 @@ class ParadigmNarrativeLibrary {
       return obj[normalizedPhase];
     }
 
+    if (projectId == 'crawl') {
+      final obj = _crawl[objective];
+      if (obj == null) return null;
+      return obj[normalizedPhase];
+    }
+
     return null;
   }
 
@@ -533,6 +539,265 @@ class ParadigmNarrativeLibrary {
       ),
     },
   };
+
+  /// Crawl (Cottage Crawl) story library.
+  ///
+  /// Crawl is an infrastructure-level intervention: it unlocks the decentralized
+  /// cottage economy by mapping residential micro-businesses into a verified,
+  /// privacy-safe, geo-spatial marketplace that turns neighborhoods into
+  /// micro-commercial zones.
+  static const Map<String, Map<String, ParadigmStoryBeatCopy>> _crawl = {
+    'User Growth': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Map the unmapped cottage economy',
+        body: '''Crawl growth starts with a discovery problem, not a marketing problem: the supply already exists (home bakers, soap makers, knife sharpeners), but it is structurally invisible.
+
+Traditional platforms privilege commercial addresses and global shipping. Crawl measures what they ignore: pop-up hours, finite inventory, residential pickup logic, and hyper-local walkability.
+
+Output: a neighborhood “asset map” that shows where demand concentrates, which categories trigger walking behavior, and where the marketplace can densify into repeat weekly routes.''',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Prove “Saturday morning crawl” activation',
+        body: '''The wedge is a fast, visual map that makes hidden commerce feel safe and standard.
+
+We validate the moment a customer opens the app, sees who is open within a 1-mile radius, and can commit to a pickup without awkward messaging.
+
+Success metric: time-to-first-walk (TTFW) — the first real-world neighborhood visit triggered by the map, not by social feeds.''',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Open/Closed toggles + crawl routes as behavior design',
+        body: '''We prototype the key behavioral mechanic: creators control visibility.
+
+Open/Closed toggles, scheduled windows, and “porch pickup” instructions make residential commerce predictable. Route previews turn the marketplace into a physical scavenger hunt — without exposing private addresses outside operating hours.
+
+Prototype success: users feel guided (not creeped out), and creators feel protected (not exposed).''',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Density flywheels (events, clusters, repeat circuits)',
+        body: '''We build growth as a local density problem.
+
+The system supports “Crawl Events” (time-boxed neighborhood drops), category-based circuits (bread + coffee + crafts), and notification rails that convert one-off novelty into weekly habit.
+
+If density rises, the marketplace stops being an app — it becomes a neighborhood ritual.''',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Neighborhood pilots with verifiable safety signals',
+        body: '''We launch in pilot neighborhoods where verification has visible meaning.
+
+Creators onboard with license proof; customers see trust badges; cities/communities see structured participation rather than informal chaos.
+
+Launch story: higher local foot traffic + higher seller consistency + lower “is this safe?” anxiety.''',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Reduce friction until discovery feels inevitable',
+        body: '''Iteration removes the reasons people fall back to group chats.
+
+We tune map clarity, pickup instructions, supply caps, and notification cadence so the experience becomes calmer and more predictable each cycle.
+
+Finish line: customers reliably “check Crawl” the way they check the weather — because it is the neighborhood’s live commerce layer.''',
+      ),
+    },
+    'Monetization': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Monetize the coordination layer (not the craft)',
+        body: '''Crawl monetization is not about taxing tiny creators — it’s about pricing the infrastructure that makes residential commerce legible.
+
+We validate what creators will pay for: predictable demand, capacity controls, verified trust, and reduced regulatory anxiety.
+
+Output: a value model spanning listing tiers, transaction rails, and hyper-local ad inventory that is contextual (not spammy).''',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Make payouts + fees feel fair and transparent',
+        body: '''We prove that a creator can see “what I earned, what I paid, and why” in plain language.
+
+Consumers must see total cost and pickup terms before committing. Creators must see fee policy and payout timing without surprises.
+
+Success metric: low dispute rate + high re-listing rate (creators keep coming back).''',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Capacity caps as a premium control surface',
+        body: '''We prototype finite inventory as first-class.
+
+Creators set caps (e.g., 30 loaves/week), sell-out behavior is explicit, and the marketplace doesn’t over-promise. Premium tools include label templates, scheduled drops, and waitlists.
+
+Prototype success: creators avoid overwhelm, customers avoid disappointment — and monetization aligns with reliability.''',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Local payments + escrow-like confidence',
+        body: '''We build transaction rails that feel as safe as mainstream e-commerce while operating in residential contexts.
+
+Clear states (reserved, ready, picked up, refunded) prevent ambiguity. Receipts, tax notes, and category constraints are embedded so creators stay compliant.
+
+The product becomes a financial utility layer for the cottage economy.''',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Marketplace integrity as the monetization story',
+        body: '''We launch monetization around integrity: reliability is what users pay for.
+
+We measure seller retention, order completion rate, and customer repeat purchases as the core revenue predictors.
+
+If the platform is trustworthy, monetization becomes sustainable without predatory tactics.''',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Tune for high-signal local ads (brands without noise)',
+        body: '''Iteration expands revenue without contaminating trust.
+
+We tune local ads to be context-aware: ingredient suppliers for bakers, tool suppliers for makers, neighborhood lifestyle partners — always tied to active foot traffic and creator intent.
+
+Win: ads feel like infrastructure sponsorship, not interruption.''',
+      ),
+    },
+    'Improved Governance': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Make compliance a product surface',
+        body: '''Crawl operates inside governance terrain: cottage food laws, licensing, labeling, revenue caps, and local zoning norms.
+
+We map what creators fear (getting shut down, being reported, operating unknowingly out of bounds) and what customers need (proof that “homemade” is legitimate).
+
+Output: a compliance UX that guides rather than polices.''',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Verification that increases safety without exposing homes',
+        body: '''We prove a verification gate that reassures customers while protecting creators.
+
+Licenses can be verified, badges can be shown, but addresses are only revealed during operating windows and only to committed buyers.
+
+Success metric: higher conversion on verified listings + lower safety-related drop-off.''',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Policy-aware listing templates',
+        body: '''We prototype listing flows that encode the law.
+
+Category constraints, allergen/ingredient labels, pickup rules, and revenue caps are reflected directly in UI defaults — reducing accidental non-compliance.
+
+Prototype success: creators feel “guided” instead of “watched.”''',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Audit-ready histories (human-readable)',
+        body: '''We build event histories that can answer: who listed what, when, under what license state.
+
+This supports creators in disputes and gives the platform the right to operate as it scales across municipalities.
+
+Governance becomes stability: rules are explicit, versioned, and explainable.''',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Cities see structure, not informal chaos',
+        body: '''We launch governance as legitimacy.
+
+Communities gain visibility into a previously informal economy; creators gain protection via structured participation; customers gain trust.
+
+Launch success: fewer complaints + clearer dispute resolution + higher license adoption.''',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Regional policy tuning + creator education loop',
+        body: '''Iteration localizes governance.
+
+We tune flows per jurisdiction, update templates as laws evolve, and add micro-education that reduces mistakes (labeling, category limits, pickup etiquette).
+
+Goal: compliance that feels like enablement — and scales region by region.''',
+      ),
+    },
+    'Improved Security': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Threat model residential commerce',
+        body: '''Security in Crawl is not optional: it’s the boundary between community and harm.
+
+We map threats: address scraping, stalking risk, fraudulent listings, payment disputes, and inventory spoofing.
+
+Output: a security model that protects home privacy by default while still enabling legitimate discovery.''',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: Privacy-first location reveal',
+        body: '''We prove that location can be useful without being exposed.
+
+Geo-fenced approximations for browsing; exact pickup details only after commitment; time-window access that expires.
+
+Success metric: high browse-to-commit conversion with no increase in privacy incidents.''',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Trust + abuse controls without “paranoia UX”',
+        body: '''We prototype reports, blocks, and identity checks that feel calm.
+
+Security must not turn the product into a warning screen. Controls are present, clear, and rarely needed — but strong when invoked.
+
+Prototype success: creators feel safe enough to participate; customers feel confident enough to walk.''',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Least-privilege access + hardened transaction states',
+        body: '''We build strict access boundaries: sensitive location data is segmented and time-scoped.
+
+Transaction state machines prevent ambiguous outcomes; logs support dispute resolution; rate limits prevent scraping.
+
+Security becomes an enabling layer, not a drag.''',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Monitoring for scraping + fraud patterns',
+        body: '''We launch with monitors tuned to the actual adversary: automated scraping, repeated address requests, suspicious account creation, and chargeback spikes.
+
+We ship operator playbooks because residential context raises the stakes.
+
+Launch success: low incident rate + fast response when anomalies appear.''',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Hardening cycles as the marketplace scales',
+        body: '''Iteration strengthens defenses as density increases.
+
+We adjust heuristics, verification thresholds, and privacy defaults region-by-region.
+
+Outcome: the platform remains safe enough to be normal — which is the only way it becomes infrastructure.''',
+      ),
+    },
+    'Increased App Engagement': {
+      'discovery': ParadigmStoryBeatCopy(
+        headline: 'Discovery: Engagement is a neighborhood ritual',
+        body: '''Engagement in Crawl is not infinite scroll — it’s real-world walking.
+
+We map repeatable moments: Saturday morning circuits, seasonal maker drops, and community crawl events.
+
+Output: an engagement model rooted in place-making and local discovery.''',
+      ),
+      'signal': ParadigmStoryBeatCopy(
+        headline: 'Signal: “Who’s open near me?” as a daily question',
+        body: '''We prove a daily-check behavior anchored in utility.
+
+If the map reliably reflects live availability and finite supply, users return without needing gimmicks.
+
+Success metric: weekly active walkers + repeat purchases per neighborhood.''',
+      ),
+      'prototype': ParadigmStoryBeatCopy(
+        headline: 'Prototype: Crawl events as lightweight game mechanics',
+        body: '''We prototype events that gamify discovery without turning it into noise.
+
+Badges for completing a circuit, route suggestions, and “drop windows” create urgency tied to real inventory — not artificial scarcity.
+
+Prototype success: engagement feels like community participation.''',
+      ),
+      'build': ParadigmStoryBeatCopy(
+        headline: 'Build: Notification cadence + inventory truth',
+        body: '''We build the engagement engine around truth: inventory and hours must be accurate.
+
+Notifications are opt-in, category-specific, and local — a utility layer, not a spam channel.
+
+Reliability is what keeps people coming back.''',
+      ),
+      'launch': ParadigmStoryBeatCopy(
+        headline: 'Launch: Instrument real-world loop health',
+        body: '''We launch measurement that respects the phenomenon: walks, pickups, sell-outs, and repeat circuits.
+
+Vanity metrics are avoided because they distort incentives.
+
+If loop health is strong, the neighborhood becomes the product.''',
+      ),
+      'iterate': ParadigmStoryBeatCopy(
+        headline: 'Iterate: Expand categories without breaking safety + trust',
+        body: '''Iteration expands the cottage economy surface area: food, crafts, services.
+
+Each new category requires its own trust and compliance affordances.
+
+Win: more variety and density while the platform stays calm, safe, and legible.''',
+      ),
+    },
+  };
 }
 
 class ParadigmProjects {
@@ -673,6 +938,74 @@ class ParadigmProjects {
           metric: 'Payout Correctness + Revenue Integrity',
           narrative:
               'TipZero’s system design treats incentives as a high-stakes marketplace: money moves, so abuse follows. The architecture separates the customer’s checkout experience from sponsor/ad attribution rules, so the product can remain fast, pressure-free, and compliant under “invalid traffic” scrutiny. A ledger-first bonus model makes every payout explainable (“why did this worker receive this bonus?”) while hardened state transitions, least-privilege access, and monitoring thresholds protect the platform from fraud, spoofing, and dispute-driven churn. Governance is embedded as product: transparent reporting, versioned policies, and audit-ready histories that scale across jurisdictions.',
+        ),
+      },
+    ),
+    'crawl': ParadigmProject(
+      id: 'crawl',
+      index: '03',
+      title: 'Crawl',
+      focus: 'Cottage Crawl Marketplace',
+      cinematic: ParadigmProjectCinematic(
+        kicker: 'Index narrative sandbox',
+        title: 'Crawl (Cottage Crawl) — execution mapped to objectives',
+        subtitle:
+            'A cinematic SDLC narrative that treats Cottage Crawl as infrastructure: reveal and commercialize the hyper-local cottage economy by turning neighborhoods into verified, privacy-safe micro-commercial zones.',
+        nodes: {
+          'User Growth': [
+            'Discovery: map the unmapped cottage economy (residential micro-businesses)',
+            'Signal: prove “Saturday morning crawl” activation (time-to-first-walk)',
+            'Prototype: open/closed toggles + route previews with privacy windows',
+            'Build: density flywheels (events, clusters, repeat circuits)',
+            'Launch: neighborhood pilots with verifiable safety signals',
+            'Iterate: reduce friction until discovery feels inevitable',
+          ],
+          'Monetization': [
+            'Discovery: monetize the coordination layer (not the craft)',
+            'Signal: transparent fees + payouts (low disputes, high re-listing)',
+            'Prototype: capacity caps, sell-outs, labels as premium control surface',
+            'Build: local payments + explicit order state machine',
+            'Launch: marketplace integrity as the monetization story',
+            'Iterate: high-signal hyper-local ads (brands without noise)',
+          ],
+          'Improved Governance': [
+            'Discovery: compliance as product surface (licenses, labels, caps)',
+            'Signal: verification that increases safety without exposing homes',
+            'Prototype: policy-aware listing templates that guide creators',
+            'Build: audit-ready histories (human-readable)',
+            'Launch: legitimacy for cities + communities (structure vs chaos)',
+            'Iterate: regional policy tuning + creator education loop',
+          ],
+          'Improved Security': [
+            'Discovery: threat model residential commerce (privacy + fraud)',
+            'Signal: privacy-first location reveal (browse ≠ exact address)',
+            'Prototype: calm trust + abuse controls (no paranoia UX)',
+            'Build: least-privilege location access + hardened transaction states',
+            'Launch: monitoring for scraping and fraud patterns',
+            'Iterate: hardening cycles as density scales',
+          ],
+          'Increased App Engagement': [
+            'Discovery: engagement as a neighborhood ritual (walking)',
+            'Signal: “who’s open near me?” as a daily question',
+            'Prototype: crawl events as lightweight game mechanics',
+            'Build: notification cadence + inventory truth',
+            'Launch: instrument real-world loop health (walks, pickups, repeats)',
+            'Iterate: expand categories without breaking safety + trust',
+          ],
+        },
+      ),
+      data: {
+        lensMarket: ParadigmProjectLensData(
+          headline: 'Turn Residential Streets into a Verified Local Marketplace',
+          metric: 'Time-to-First-Walk (TTFW) + Repeat Circuits',
+          narrative:
+              'Cottage Crawl is positioned as a geo-spatial discovery and transaction layer for the hyper-local cottage economy. Traditional commerce forces makers into cost-prohibitive leases or global shipping platforms; meanwhile, cottage food/craft laws legalize residential production but leave it undiscoverable. Crawl’s go-to-market frames “re-imagining neighborhood walking”: localized crawl events turn discovery into a safe, social ritual while verification gates convert “homemade” into trusted, regulated micro-commerce.',
+        ),
+        lensSystems: ParadigmProjectLensData(
+          headline: 'Privacy-Safe Mapping with Compliance-by-Design',
+          metric: 'Verification Conversion + Incident Rate + Order Integrity',
+          narrative:
+              'Crawl’s architecture treats neighborhoods as distributed micro-commercial zones: real-time open/closed visibility, finite inventory truth, and time-windowed address reveal. Security and governance are embedded as product surfaces: least-privilege access for sensitive location data, hardened transaction state machines to prevent ambiguity, and compliance-aware listing templates (licenses, labeling, category constraints) that guide creators without surveillance vibes. The platform scales by density: as more verified creators join, more walkers join, and the neighborhood becomes a living commerce graph.',
         ),
       },
     ),

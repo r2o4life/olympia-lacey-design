@@ -92,6 +92,7 @@ class _OntologyBackdropPainter extends CustomPainter {
 
     final isTipZero = projectId.toLowerCase().contains('tip');
     final isBridge = projectId.toLowerCase().contains('bridge');
+    final isCrawl = projectId.toLowerCase().contains('crawl') || projectId.toLowerCase().contains('cottage');
 
     final seed = _stableHash('$projectId::$keyword');
     final rng = math.Random(seed);
@@ -139,10 +140,99 @@ class _OntologyBackdropPainter extends CustomPainter {
 
     if (isTipZero) {
       _paintTipZero(canvas, size, rng, baseStroke, accentStroke, glowStroke, haloStroke, accentDot);
+    } else if (isCrawl) {
+      _paintCrawl(canvas, size, rng, baseStroke, accentStroke, glowStroke, haloStroke, accentDot);
     } else if (isBridge) {
       _paintBridge(canvas, size, rng, baseStroke, accentStroke, glowStroke, haloStroke, accentDot);
     } else {
       _paintGeneric(canvas, size, rng, baseStroke, accentStroke, glowStroke, haloStroke, accentDot);
+    }
+  }
+
+  void _paintCrawl(
+    Canvas canvas,
+    Size size,
+    math.Random rng,
+    Paint baseStroke,
+    Paint accentStroke,
+    Paint glowStroke,
+    Paint haloStroke,
+    Paint accentDot,
+  ) {
+    // CRAWL = “neighborhood micro-commerce map”: blocks + routes + homes.
+    // Visual metaphor: residential blocks (soft grids) with a few highlighted
+    // nodes that feel like “open now” makers.
+
+    final c = (complexity ?? 1.0).clamp(0.55, 1.0);
+    final margin = math.max(24.0, size.shortestSide * 0.06);
+    final rect = Rect.fromLTWH(margin, margin, size.width - margin * 2, size.height - margin * 2);
+
+    // Block grid (not a checker) — thin street lines.
+    final cols = (5 * c).round().clamp(3, 5);
+    final rows = (4 * c).round().clamp(3, 5);
+    final cellW = rect.width / cols;
+    final cellH = rect.height / rows;
+
+    for (int x = 0; x <= cols; x++) {
+      final dx = rect.left + cellW * x;
+      canvas.drawLine(Offset(dx, rect.top), Offset(dx, rect.bottom), baseStroke);
+    }
+    for (int y = 0; y <= rows; y++) {
+      final dy = rect.top + cellH * y;
+      canvas.drawLine(Offset(rect.left, dy), Offset(rect.right, dy), baseStroke);
+    }
+
+    // “Walking routes” as curved paths across blocks.
+    final routes = (3 * c).round().clamp(2, 4);
+    for (int i = 0; i < routes; i++) {
+      final start = Offset(
+        rect.left + rect.width * (0.10 + rng.nextDouble() * 0.20),
+        rect.top + rect.height * (0.12 + rng.nextDouble() * 0.70),
+      );
+      final end = Offset(
+        rect.left + rect.width * (0.70 + rng.nextDouble() * 0.22),
+        rect.top + rect.height * (0.10 + rng.nextDouble() * 0.78),
+      );
+      final mid = Offset(
+        (start.dx + end.dx) / 2 + (rng.nextDouble() - 0.5) * rect.width * 0.18,
+        (start.dy + end.dy) / 2 + (rng.nextDouble() - 0.5) * rect.height * 0.14,
+      );
+      final path = Path()
+        ..moveTo(start.dx, start.dy)
+        ..quadraticBezierTo(mid.dx, mid.dy, end.dx, end.dy);
+      canvas.drawPath(path, glowStroke);
+      canvas.drawPath(path, accentStroke);
+    }
+
+    // Homes / makers: small house glyphs anchored to intersections.
+    final makers = (10 * c).round().clamp(6, 10);
+    for (int i = 0; i < makers; i++) {
+      final col = rng.nextInt(cols + 1);
+      final row = rng.nextInt(rows + 1);
+      final center = Offset(rect.left + cellW * col, rect.top + cellH * row);
+
+      // Slight jitter so it's not perfectly on the line.
+      final jitter = Offset((rng.nextDouble() - 0.5) * 10, (rng.nextDouble() - 0.5) * 10);
+      final p = center + jitter;
+
+      final s = 10.0 + rng.nextDouble() * 10;
+      final base = Rect.fromCenter(center: Offset(p.dx, p.dy + s * 0.18), width: s, height: s * 0.65);
+      final roof = Path()
+        ..moveTo(p.dx - s * 0.55, p.dy + s * 0.02)
+        ..lineTo(p.dx, p.dy - s * 0.55)
+        ..lineTo(p.dx + s * 0.55, p.dy + s * 0.02)
+        ..close();
+
+      canvas.drawRRect(RRect.fromRectAndRadius(base, const Radius.circular(3)), baseStroke);
+      canvas.drawPath(roof, baseStroke);
+
+      // A subset are “open now” — accented and haloed.
+      if (i.isEven) {
+        canvas.drawRRect(RRect.fromRectAndRadius(base, const Radius.circular(3)), accentStroke);
+        canvas.drawPath(roof, accentStroke);
+        canvas.drawCircle(p, 4.2, accentDot);
+        canvas.drawCircle(p, 18, haloStroke);
+      }
     }
   }
 
