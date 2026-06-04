@@ -6,6 +6,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:parallel_paradigm_org/paradigm/cinematic_tile_art.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/pixel_motif.dart';
 import 'package:parallel_paradigm_org/theme.dart';
 
@@ -30,6 +31,7 @@ class CinematicTile extends StatefulWidget {
     this.demoTemplate,
     this.initialKeyword,
     this.onKeywordChanged,
+    this.art,
   });
 
   final String kicker;
@@ -58,6 +60,10 @@ class CinematicTile extends StatefulWidget {
   /// objective selection into a full sandbox view.
   final ValueChanged<String?>? onKeywordChanged;
 
+  /// Optional protocol-driven render artifacts (gradient mapping, motif density,
+  /// sheen/vignette tuning). When omitted, the tile uses its built-in defaults.
+  final CinematicTileArt? art;
+
   @override
   State<CinematicTile> createState() => _CinematicTileState();
 }
@@ -68,9 +74,11 @@ enum CinematicDemoSet {
   commission,
 }
 
-class _CinematicTileState extends State<CinematicTile> {
+class _CinematicTileState extends State<CinematicTile> with SingleTickerProviderStateMixin {
   bool _hover = false;
   Offset _pointer = Offset.zero;
+
+  late final AnimationController _ambient;
 
   String? _activeKeyword;
   String? _activeBusiness;
@@ -78,6 +86,7 @@ class _CinematicTileState extends State<CinematicTile> {
   @override
   void initState() {
     super.initState();
+    _ambient = AnimationController(vsync: this, duration: const Duration(milliseconds: 6800))..repeat();
     if (widget.interactiveKeywords) {
       final desired = widget.initialKeyword;
       if (desired != null && widget.keywords.contains(desired)) {
@@ -85,6 +94,12 @@ class _CinematicTileState extends State<CinematicTile> {
         _activeBusiness = _pickBusinessTemplate(desired);
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _ambient.dispose();
+    super.dispose();
   }
 
   @override
@@ -252,7 +267,8 @@ class _CinematicTileState extends State<CinematicTile> {
             final scale = 1 + (0.012 * t);
             final lift = -6 * t;
             final blur = 5.0 * t;
-            final sheen = 0.10 + (0.18 * t);
+            final art = widget.art;
+            final sheen = (art?.sheenBase ?? 0.10) + ((art?.sheenBase ?? 0.10) * 1.65 * t);
 
             // Visual transform: only apply perspective tilt to non-interactive
             // background layers. Foreground content stays stable for usability
@@ -302,22 +318,22 @@ class _CinematicTileState extends State<CinematicTile> {
                                 fit: StackFit.expand,
                                 children: [
                                   // “CSS background layer” — gradient + subtle vignette.
-                                  DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: ParadigmColors.bg,
-                                      gradient: LinearGradient(
-                                        begin: Alignment(-0.9 + _pointer.dx * 0.15, -0.8 + _pointer.dy * 0.12),
-                                        end: Alignment(0.9 - _pointer.dx * 0.15, 0.8 - _pointer.dy * 0.12),
-                                        colors: [
-                                          Colors.white.withValues(alpha: 0.04 + 0.02 * t),
-                                          widget.accent.withValues(alpha: 0.10 + 0.10 * t),
-                                          Colors.black.withValues(alpha: 0.60),
-                                        ],
-                                        stops: const [0.0, 0.55, 1.0],
-                                      ),
-                                      border: Border.fromBorderSide(baseBorder),
-                                    ),
-                                  ),
+                                   DecoratedBox(
+                                     decoration: BoxDecoration(
+                                       color: ParadigmColors.bg,
+                                       gradient: LinearGradient(
+                                         begin: Alignment(-0.9 + _pointer.dx * 0.15, -0.8 + _pointer.dy * 0.12),
+                                         end: Alignment(0.9 - _pointer.dx * 0.15, 0.8 - _pointer.dy * 0.12),
+                                         colors: art?.gradientColors ?? [
+                                           Colors.white.withValues(alpha: 0.04 + 0.02 * t),
+                                           widget.accent.withValues(alpha: 0.10 + 0.10 * t),
+                                           Colors.black.withValues(alpha: 0.60),
+                                         ],
+                                         stops: art?.gradientStops ?? const [0.0, 0.55, 1.0],
+                                       ),
+                                       border: Border.fromBorderSide(baseBorder),
+                                     ),
+                                   ),
 
                                   // “CSS filter layer” — animated blur/glass.
                                   Positioned.fill(
@@ -328,12 +344,56 @@ class _CinematicTileState extends State<CinematicTile> {
                                   ),
 
                                   // Motif field (parallax).
-                                  Positioned.fill(
-                                    child: Transform.translate(
-                                      offset: parallax,
-                                      child: _MotifField(accent: widget.accent),
-                                    ),
-                                  ),
+                                   Positioned.fill(
+                                     child: Transform.translate(
+                                       offset: parallax,
+                                       child: _MotifField(
+                                         accent: widget.accent,
+                                         seed: art?.seed,
+                                         density: art?.motifDensity ?? 1.0,
+                                         minAlpha: art?.motifMinAlpha ?? 0.08,
+                                         maxAlpha: art?.motifMaxAlpha ?? 0.16,
+                                       ),
+                                     ),
+                                   ),
+
+                                    // Optional per-case-study overlay.
+                                    if ((art?.overlayKind ?? CinematicTileOverlayKind.none) != CinematicTileOverlayKind.none)
+                                      Positioned.fill(
+                                        child: AnimatedBuilder(
+                                          animation: _ambient,
+                                          builder: (context, _) => IgnorePointer(
+                                            child: CustomPaint(
+                                              painter: _CinematicOverlayPainter(
+                                                kind: art?.overlayKind ?? CinematicTileOverlayKind.none,
+                                                seed: art?.seed ?? 0,
+                                                accent: widget.accent,
+                                                baseAlpha: art?.overlayAlpha ?? 0.10,
+                                                hoverT: t,
+                                                ambientT: _ambient.value,
+                                                pointer: _pointer,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                   // Vignette (protocol-tuned edge readability).
+                                   Positioned.fill(
+                                     child: DecoratedBox(
+                                       decoration: BoxDecoration(
+                                         gradient: RadialGradient(
+                                           center: Alignment(0.0 + _pointer.dx * 0.10, 0.15 + _pointer.dy * 0.10),
+                                           radius: 1.10,
+                                           colors: [
+                                             Colors.transparent,
+                                             Colors.black.withValues(alpha: (art?.vignetteStrength ?? 0.14) + 0.06 * t),
+                                           ],
+                                           stops: const [0.62, 1.0],
+                                         ),
+                                       ),
+                                     ),
+                                   ),
 
                                   // Sheen.
                                   Positioned.fill(
@@ -2170,9 +2230,13 @@ class _CinematicAction extends StatelessWidget {
 }
 
 class _MotifField extends StatelessWidget {
-  const _MotifField({required this.accent});
+  const _MotifField({required this.accent, required this.seed, required this.density, required this.minAlpha, required this.maxAlpha});
 
   final Color accent;
+  final int? seed;
+  final double density;
+  final double minAlpha;
+  final double maxAlpha;
 
   @override
   Widget build(BuildContext context) {
@@ -2180,20 +2244,20 @@ class _MotifField extends StatelessWidget {
       builder: (context, c) {
         final w = c.maxWidth;
         final h = c.maxHeight;
-        final count = math.max(10, (w * h / 32000).round());
+        final count = math.max(10, ((w * h / 32000) * density).round());
+        final r = math.Random((seed ?? 0) ^ count);
         return Stack(
           children: List.generate(count, (i) {
-            final t = i / count;
-            final dx = (math.sin(t * math.pi * 6.0) * 0.5 + 0.5) * (w - 40);
-            final dy = (math.cos(t * math.pi * 5.0 + 1.1) * 0.5 + 0.5) * (h - 40);
-            final size = 16.0 + (i % 4) * 6.0;
-            final alpha = 0.08 + (i % 5) * 0.02;
+            final dx = r.nextDouble() * (w - 40);
+            final dy = r.nextDouble() * (h - 40);
+            final size = 14.0 + r.nextInt(4) * 7.0;
+            final alpha = minAlpha + (maxAlpha - minAlpha) * r.nextDouble();
             final color = accent.withValues(alpha: alpha);
             return Positioned(
               left: dx,
               top: dy,
               child: Transform.rotate(
-                angle: (i % 7) * 0.22,
+                angle: (r.nextDouble() * 1.2) - 0.6,
                 child: ParadigmPixelMotif(keyword: 'm$i', size: size, color: color),
               ),
             );
@@ -2201,5 +2265,120 @@ class _MotifField extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _CinematicOverlayPainter extends CustomPainter {
+  _CinematicOverlayPainter({
+    required this.kind,
+    required this.seed,
+    required this.accent,
+    required this.baseAlpha,
+    required this.hoverT,
+    required this.ambientT,
+    required this.pointer,
+  });
+
+  final CinematicTileOverlayKind kind;
+  final int seed;
+  final Color accent;
+  final double baseAlpha;
+  final double hoverT;
+  final double ambientT;
+  final Offset pointer;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (kind != CinematicTileOverlayKind.bridgeboundNetwork) return;
+
+    final r = math.Random(seed ^ (size.width.round() << 8) ^ size.height.round());
+    final count = (8 + (size.width * size.height / 140000).round()).clamp(8, 14);
+
+    final points = List<Offset>.generate(count, (i) {
+      // Keep nodes away from extreme edges so they don’t collide with rounded
+      // corners and content.
+      final padX = 46.0;
+      final padY = 40.0;
+      final x = padX + r.nextDouble() * (size.width - padX * 2);
+      final y = padY + r.nextDouble() * (size.height - padY * 2);
+      return Offset(x, y);
+    }, growable: false);
+
+    final drift = Offset(pointer.dx * 10, pointer.dy * 8);
+    final pulse = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(ambientT * math.pi * 2));
+    final alpha = (baseAlpha + 0.10 * hoverT).clamp(0.0, 0.35);
+
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..strokeCap = StrokeCap.round
+      ..color = Colors.white.withValues(alpha: (alpha * 0.55) + 0.04);
+
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6)
+      ..color = accent.withValues(alpha: (alpha * 0.40 * pulse).clamp(0.0, 0.22));
+
+    // Connect nodes into a sparse “bridge” network: each node links to the next,
+    // plus a few cross-links.
+    final path = Path();
+    for (var i = 0; i < points.length - 1; i++) {
+      final a = points[i] + drift;
+      final b = points[i + 1] + drift;
+      final mid = Offset((a.dx + b.dx) / 2, (a.dy + b.dy) / 2);
+      final bend = Offset((r.nextDouble() - 0.5) * 60, (r.nextDouble() - 0.5) * 46);
+      final c = mid + bend;
+      path.moveTo(a.dx, a.dy);
+      path.quadraticBezierTo(c.dx, c.dy, b.dx, b.dy);
+    }
+
+    final crossLinks = (points.length / 3).floor().clamp(2, 4);
+    for (var i = 0; i < crossLinks; i++) {
+      final a = points[r.nextInt(points.length)] + drift;
+      final b = points[r.nextInt(points.length)] + drift;
+      final dx = (b.dx - a.dx).abs();
+      final dy = (b.dy - a.dy).abs();
+      if (dx + dy < 140) continue;
+      final mid = Offset((a.dx + b.dx) / 2, (a.dy + b.dy) / 2);
+      final bend = Offset((r.nextDouble() - 0.5) * 70, (r.nextDouble() - 0.5) * 54);
+      final c = mid + bend;
+      path.moveTo(a.dx, a.dy);
+      path.quadraticBezierTo(c.dx, c.dy, b.dx, b.dy);
+    }
+
+    canvas.drawPath(path, glowPaint);
+    canvas.drawPath(path, linePaint);
+
+    // Nodes.
+    for (var i = 0; i < points.length; i++) {
+      final p = points[i] + drift;
+      final localPhase = (ambientT + i * 0.11) % 1.0;
+      final localPulse = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(localPhase * math.pi * 2));
+      final radius = 2.0 + 2.6 * localPulse;
+
+      final nodeGlow = Paint()
+        ..style = PaintingStyle.fill
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10)
+        ..color = accent.withValues(alpha: (alpha * 0.55 * localPulse).clamp(0.0, 0.30));
+
+      final nodeFill = Paint()
+        ..style = PaintingStyle.fill
+        ..color = Colors.white.withValues(alpha: (alpha * 0.90) + 0.06);
+
+      canvas.drawCircle(p, radius * 1.8, nodeGlow);
+      canvas.drawCircle(p, radius, nodeFill);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CinematicOverlayPainter oldDelegate) {
+    return oldDelegate.kind != kind ||
+        oldDelegate.seed != seed ||
+        oldDelegate.accent != accent ||
+        oldDelegate.baseAlpha != baseAlpha ||
+        oldDelegate.hoverT != hoverT ||
+        oldDelegate.ambientT != ambientT ||
+        oldDelegate.pointer != pointer;
   }
 }

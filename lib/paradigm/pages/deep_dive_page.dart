@@ -5,6 +5,7 @@ import 'package:parallel_paradigm_org/nav.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_data.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_shell.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_simulation.dart';
+import 'package:parallel_paradigm_org/paradigm/upp_v4_spec.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/cinematic_tiles.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/paradigm_top_nav.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/pixel_motif.dart';
@@ -93,6 +94,10 @@ class _DeepDiveContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const upp = UppV4Engine();
+    final viewportW = MediaQuery.sizeOf(context).width;
+    final accent = ParadigmKeywordPalette.colorFor(project.title);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -129,7 +134,7 @@ class _DeepDiveContent extends StatelessWidget {
           title: project.cinematic.title,
           subtitle: project.cinematic.subtitle,
           keywords: project.cinematic.nodes.keys.toList(growable: false),
-          accent: ParadigmKeywordPalette.colorFor(project.title),
+          accent: accent,
           onTap: () => context.push(AppRoutes.projectExplore(project.id, objective: selectedObjective)),
           actionLabel: 'Explore',
           // Use more of the viewport so longer objective lists never clip.
@@ -143,6 +148,9 @@ class _DeepDiveContent extends StatelessWidget {
           demoTemplate: project.cinematic.nodes,
           initialKeyword: selectedObjective,
           onKeywordChanged: onSelectedObjectiveChanged,
+          art: project.id == 'bridge'
+              ? upp.bridgeboundTileArtifacts(tileId: 'deepdive.hero', accent: accent, viewportWidth: viewportW)
+              : null,
         ),
       ],
     );

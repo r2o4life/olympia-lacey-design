@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:parallel_paradigm_org/nav.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_shell.dart';
 import 'package:parallel_paradigm_org/paradigm/paradigm_simulation.dart';
+import 'package:parallel_paradigm_org/paradigm/upp_v4_spec.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/cinematic_tiles.dart';
 import 'package:parallel_paradigm_org/paradigm/widgets/paradigm_top_nav.dart';
 import 'package:parallel_paradigm_org/theme.dart';
@@ -80,6 +81,9 @@ class _CinematicLandingState extends State<_CinematicLanding> {
   Widget build(BuildContext context) {
     final padding = ParadigmTopNav.defaultPaddingFor(context);
     final topPad = 112 + padding.top;
+    final viewportW = MediaQuery.sizeOf(context).width;
+    final useUppArtifacts = viewportW >= 980;
+    const upp = UppV4Engine();
     return Padding(
       padding: EdgeInsets.fromLTRB(padding.left, topPad, padding.right, padding.bottom),
       child: Stack(
@@ -98,6 +102,7 @@ class _CinematicLandingState extends State<_CinematicLanding> {
                 interactiveKeywords: true,
                 demoSet: CinematicDemoSet.experienceTech,
                 actionLabel: 'Scroll',
+                art: useUppArtifacts ? upp.homeTileArtifacts(tileId: 'vanguard.experience', accent: ParadigmColors.accentCyan, viewportWidth: viewportW) : null,
                 onTap: () {
                   _controller.nextPage(duration: const Duration(milliseconds: 520), curve: Curves.easeOutCubic);
                 },
@@ -112,6 +117,7 @@ class _CinematicLandingState extends State<_CinematicLanding> {
                 interactiveKeywords: true,
                 demoSet: CinematicDemoSet.proofExecution,
                 actionLabel: 'Enter index',
+                art: useUppArtifacts ? upp.homeTileArtifacts(tileId: 'vanguard.proof', accent: ParadigmColors.accentViolet, viewportWidth: viewportW) : null,
                 onTap: widget.onIndex,
               ),
               CinematicTile(
@@ -124,6 +130,7 @@ class _CinematicLandingState extends State<_CinematicLanding> {
                 interactiveKeywords: true,
                 demoSet: CinematicDemoSet.commission,
                 actionLabel: 'Start inquiry',
+                art: useUppArtifacts ? upp.homeTileArtifacts(tileId: 'vanguard.commission', accent: ParadigmColors.accentAmber, viewportWidth: viewportW) : null,
                 onTap: widget.onInquiry,
               ),
             ],
