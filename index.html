@@ -19,14 +19,14 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <!-- Primary SEO -->
-  <meta name="description" content="Parallel Paradigm is Olympia Lacey Design’s case study library and interactive sandbox—explore systems thinking, product narratives, and research-driven design across evolving bodies of work.">
+  <meta name="description" content="Olympia Lacey Design is technology studio for small and mid-size businesses. We improve growth, monetization, governance, security, and engagement - which compounds profitability and brand strength">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="theme-color" content="#0B0F17">
 
   <!-- Social sharing (Open Graph / Twitter) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Parallel Paradigm • Olympia Lacey Design">
-  <meta property="og:description" content="Case study library and interactive sandbox—systems framing, product narratives, and research-driven design.">
+  <meta property="og:description" content="Olympia Lacey Design is technology studio for small and mid-size businesses. We improve growth, monetization, governance, security, and engagement - which compounds profitability and brand strength">
   <!-- Prefer PNG for link previews (many scrapers don't support SVG reliably). -->
   <meta property="og:image" content="assets/assets/images/Parallel_Paradigm_Black_on_White.png">
   <meta property="og:image:type" content="image/png">
@@ -36,24 +36,30 @@
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Parallel Paradigm • Olympia Lacey Design">
-  <meta name="twitter:description" content="Case study library and interactive sandbox—systems framing, product narratives, and research-driven design.">
+  <meta name="twitter:description" content="Olympia Lacey Design is technology studio for small and mid-size businesses. We improve growth, monetization, governance, security, and engagement - which compounds profitability and brand strength">
   <meta name="twitter:image" content="assets/assets/images/Parallel_Paradigm_Black_on_White.png">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Parallel Paradigm">
-  <!-- Use Flutter asset-bundled icon so we have one source of truth across web/app. -->
-  <link rel="apple-touch-icon" href="assets/assets/images/Parallel_Paradigm_Black_on_White.png?v=pp1">
+  <!-- iOS home-screen icon (prefer conventional web/icons so all crawlers agree). -->
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png?v=pp3">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png?v=pp3">
 
   <!-- Favicon -->
-  <!-- Single icon source of truth (cache-busted) to avoid browsers picking Flutter defaults. -->
-  <link rel="icon" href="assets/assets/images/Parallel_Paradigm_Black_on_White.png?v=pp1" type="image/png">
-  <link rel="shortcut icon" href="assets/assets/images/Parallel_Paradigm_Black_on_White.png?v=pp1" type="image/png">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/assets/images/Parallel_Paradigm_Black_on_White.png?v=pp1"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="assets/assets/images/Parallel_Paradigm_Black_on_White.png?v=pp1"/>
-  <link rel="icon" type="image/png" sizes="192x192" href="assets/assets/images/Parallel_Paradigm_Black_on_White.png?v=pp1"/>
-  <link rel="icon" type="image/png" sizes="512x512" href="assets/assets/images/Parallel_Paradigm_Black_on_White.png?v=pp1"/>
+  <!--
+    IMPORTANT:
+    Some browsers/crawlers will still probe /favicon.ico or /favicon.png even if a custom <link rel="icon"> exists.
+    To avoid them picking up a stale/default Flutter favicon, we explicitly point to web/favicon.png and web/icons/*.
+  -->
+  <link rel="icon" href="favicon.png?v=pp3" type="image/png">
+  <link rel="shortcut icon" href="favicon.png?v=pp3" type="image/png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=pp3"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=pp3"/>
+  <link rel="icon" type="image/png" sizes="48x48" href="favicon.png?v=pp3"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/Icon-192.png?v=pp3"/>
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/Icon-512.png?v=pp3"/>
 
   <title>Parallel Paradigm • Olympia Lacey Design</title>
   <link rel="manifest" href="manifest.json">
@@ -64,7 +70,7 @@
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "Parallel Paradigm",
-      "description": "Case study library and interactive sandbox—systems framing, product narratives, and research-driven design.",
+      "description": "Olympia Lacey Design is technology studio for small and mid-size businesses. We improve growth, monetization, governance, security, and engagement - which compounds profitability and brand strength",
       "publisher": {
         "@type": "Person",
         "name": "Olympia Lacey"
